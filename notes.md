@@ -43,5 +43,11 @@ Emissions des déplacements en taxi = (distance orthodromique*1,2) * (1 + 1 / nb
 
 Pour chaque site de l’organisation, un fichier contenant les achats quotidiens de matériel informatique sur le site a été enregistré chaque jour. Remarque : Certaines données de ces fichiers quotidiens peuvent être manquantes (donc potentiellement les imputer avec moyenne ou ML)
 
+# Idée pour le schéma du Data Warehouse : 
+
+Dimension personnel avec tous les attributs des personnels (sans oublier d'uniformiser la langue du secteur d'activité)
+Dimension mission
+Dimension matériel informatique
+
 
 
