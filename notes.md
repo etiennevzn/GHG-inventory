@@ -1,3 +1,5 @@
+# Date de rendu : 19 mai
+
 # Catégories d'émission 
 
 3 catégories d’emissions de GES vis-à-vis du BGES d’une organisation, dont 2 principales :
@@ -45,9 +47,15 @@ Pour chaque site de l’organisation, un fichier contenant les achats quotidiens
 
 # Idée pour le schéma du Data Warehouse : 
 
-Dimension personnel avec tous les attributs des personnels (sans oublier d'uniformiser la langue du secteur d'activité)
-Dimension mission
-Dimension matériel informatique
+Pour chaque site : 
+
+- Dimension personnel (homogénéiser la langue du secteur d'activité)
+- Dimension mission (homogénéiser la langue du type de la mission)
+- Dimension matériel informatique (nécessité d'estimation des données manquantes dans les fichiers des différents sites)
+- Table de fait qui regroupe les clés primaires des 3 dimensions 
+
+Coment réunir les modèles étoile de chaque site ? 
+
 
 
 
