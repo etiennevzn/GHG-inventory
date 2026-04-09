@@ -41,6 +41,8 @@ Spécificité des déplacements en taxi :
 Le facteur d’émission retenu est celui de la voiture "motorisation moyenne" de la Base Carbone. Les émissions sont divisées par le nombre de personnes dans le taxi pour le trajet aller. Pour le retour au point d’origine, nous faisons l’hypothèse que le taxi revient seulement avec une personne à bord (le chauffeur).
 Emissions des déplacements en taxi = (distance orthodromique*1,2) * (1 + 1 / nb de personnes à bord) * facteur d’émission voiture "motorisation moyenne"
 
+Pour le calcul des destinations : le calcul avec geopy prend du temps, donc pour les trajets qui reviennent souvent on peut stocker la distance (idée : la stocker dans un dictionnaire avec la clé le nom des deux villes)
+
 # Calcul de l'empreinte carbone du matériel informatique
 
 Pour chaque site de l’organisation, un fichier contenant les achats quotidiens de matériel informatique sur le site a été enregistré chaque jour. Remarque : Certaines données de ces fichiers quotidiens peuvent être manquantes (donc potentiellement les imputer avec moyenne ou ML)
@@ -54,7 +56,21 @@ Pour chaque site :
 - Dimension matériel informatique (nécessité d'estimation des données manquantes dans les fichiers des différents sites)
 - Table de fait qui regroupe les clés primaires des 3 dimensions 
 
-Coment réunir les modèles étoile de chaque site ? 
+On aura donc plusieurs étoiles => modèle constellation 
+
+Attention pour la dimension personnel : clarifier le contenu du fichier personnel. Le prof a dit que c'était comme une bdd transactionelle. 
+
+Est-ce qu'on a vraiment besoin dans le Data Warehouse de stocker le numéro de sécu de chaque employé ? On doit trier entre les informations utiles et celles qu'on ne garde pas. 
+
+# ETL Journalier 
+
+Pour chaque jour, on extrait les données de chaque site (base d'extraction). On peut faire une base d'extraction par site puis passer dans les ETL puis faire converger les données après. 
+Une fois les données extraites, ETL pour le jour-j. On peut faire l'ETL séparément pour chaque site, c'est nous qui choisissons. 
+On vient ensuite empiler les données du jour à la suite de toutes les autres dans le Data Warehouse. 
+
+L'ETL prend la forme de fonctions. On fait en fait une boucle (for chaque jour entre tel jour et tel jour...). On traite toutes les données de la journée, puis les suivantes etc. 
+
+Réfléchir pour la création de clé à chaque jour ? 
 
 
 
