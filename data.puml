@@ -1,0 +1,101 @@
+@startuml ModeleDonnees
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 80
+skinparam ranksep 100
+skinparam shadowing false
+skinparam roundCorner 10
+
+skinparam class {
+  BackgroundColor<<Fait>> #FFD700
+  BackgroundColor<<Dimension>> #AACCFF
+  BorderColor #333333
+  FontSize 12
+}
+
+' ===== DIMENSIONS PARTAGÉES / HAUT =====
+class DIM_MISSION << Dimension >> {
+  + id_mission : INT <<PK>>
+  --
+  + id_personnel : VARCHAR
+  + date_mission : DATE
+  + type_mission : VARCHAR
+  + ville_depart : VARCHAR
+  + pays_depart : VARCHAR
+  + ville_destination : VARCHAR
+  + pays_destination : VARCHAR
+  + transport : VARCHAR
+  + aller_retour : BOOLEEN  
+}
+
+class DIM_MATERIEL << Dimension >> {
+  + id_materiel : INT <<PK>>
+  --
+  + id_personnel : VARCHAR
+  + date_achat : DATE
+  + type : VARCHAR
+  + Modèle : VARCHAR
+}
+
+' ===== DIMENSION CENTRALE PARTAGÉE =====
+class DIM_PERSONNEL << Dimension >> {
+  + id_personnel : INT <<PK>>
+  --
+  + fonction_personnel : VARCHAR
+  + service : VARCHAR
+}
+
+class DIM_SITE << Dimension >> {
+  + id_site : INT <<PK>>
+  --
+  + nom_site : VARCHAR
+}
+
+class DIM_DATE << Dimension >> {
+  + id_date_mission : DATE <<PK>>
+  --
+  + date_mission : DATE
+  + fuseau_horaire : VARCHAR
+}
+
+' ===== TABLES DE FAITS =====
+class FAIT_MISSION << Fait >> {
+  + id_personnel : INT <<FK>>
+  + id_mission : INT <<FK>>
+  + id_site : INT <<FK>>
+  + id_date_mission : DATE <<FK>>
+}
+
+class FAIT_MATERIEL << Fait >> {
+  + id_personnel : INT <<FK>>
+  + id_materiel : INT <<FK>>
+  + id_site : INT <<FK>>
+  + id_date_achat : INT <<FK>>
+}
+
+' ===== POSITIONNEMENT =====
+' Ligne du haut : dimensions spécifiques
+DIM_MISSION  -[hidden]right- DIM_MATERIEL
+
+' Faits côte à côte au milieu
+FAIT_MISSION -[hidden]right- FAIT_MATERIEL
+
+' Ligne du bas : dimensions partagées
+DIM_PERSONNEL -[hidden]right- DIM_SITE
+
+' ===== RELATIONS FAIT_MISSION =====
+DIM_MISSION       "1" --> "0..*" FAIT_MISSION
+DIM_PERSONNEL     "1" --> "0..*" FAIT_MISSION
+DIM_SITE          "1" --> "0..*" FAIT_MISSION
+DIM_DATE    "1" --> "0..*" FAIT_MISSION
+
+' ===== RELATIONS FAIT_MATERIEL =====
+DIM_MATERIEL      "1" --> "0..*" FAIT_MATERIEL
+DIM_PERSONNEL     "1" --> "0..*" FAIT_MATERIEL
+DIM_SITE          "1" --> "0..*" FAIT_MATERIEL
+DIM_DATE  "1" --> "0..*" FAIT_MATERIEL
+
+
+
+@enduml
