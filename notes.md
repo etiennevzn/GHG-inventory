@@ -42,6 +42,7 @@ Le facteur d’émission retenu est celui de la voiture "motorisation moyenne" d
 Emissions des déplacements en taxi = (distance orthodromique*1,2) * (1 + 1 / nb de personnes à bord) * facteur d’émission voiture "motorisation moyenne"
 
 Pour le calcul des destinations : le calcul avec geopy prend du temps, donc pour les trajets qui reviennent souvent on peut stocker la distance (idée : la stocker dans un dictionnaire avec la clé le nom des deux villes)
+Pour les missions qui ont le même point de départ et d'arrivée, la distance à vol d'oiseau sera 0. Donc comme distance pour l'empreinte carbone on prend un epsilon que l'on choisit (trouver comme estimer de manière réaliste). 
 
 # Calcul de l'empreinte carbone du matériel informatique
 
@@ -56,9 +57,7 @@ Pour chaque site :
 - Dimension matériel informatique (nécessité d'estimation des données manquantes dans les fichiers des différents sites)
 - Table de fait qui regroupe les clés primaires des 3 dimensions 
 
-On aura donc plusieurs étoiles => modèle constellation 
-
-Attention pour la dimension personnel : clarifier le contenu du fichier personnel. Le prof a dit que c'était comme une bdd transactionelle. 
+On aura donc plusieurs étoiles => modèle constellation. Si on a deux tables de faits de 2 étoiles, on peut avoir par exemple une dimension partagée entre les 2 tables de faits, ce qui évite de dupliquer l'information. 
 
 Est-ce qu'on a vraiment besoin dans le Data Warehouse de stocker le numéro de sécu de chaque employé ? On doit trier entre les informations utiles et celles qu'on ne garde pas. 
 
@@ -71,6 +70,10 @@ On vient ensuite empiler les données du jour à la suite de toutes les autres d
 L'ETL prend la forme de fonctions. On fait en fait une boucle (for chaque jour entre tel jour et tel jour...). On traite toutes les données de la journée, puis les suivantes etc. 
 
 Réfléchir pour la création de clé à chaque jour ? 
+
+# Tableau de bord
+Streamlit
+Idée : intégrer un LLM (utilise l'API openAI) pour traduire des requêtes en langage naturel en requêtes sur les données dans le tableau de bord. Si on arrive à faire ça on a 20 c'est sur.  
 
 
 
