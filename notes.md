@@ -71,6 +71,8 @@ L'ETL prend la forme de fonctions. On fait en fait une boucle (for chaque jour e
 
 Réfléchir pour la création de clé à chaque jour ? 
 
+Choisir un fuseau horaire commun à tous les sites. Puis dès que l'on extrait une date, on transforme la date vers ce fuseau horaire. 
+
 # Tableau de bord
 Streamlit
 Idée : intégrer un LLM (utilise l'API openAI) pour traduire des requêtes en langage naturel en requêtes sur les données dans le tableau de bord. Si on arrive à faire ça on a 20 c'est sur.  
