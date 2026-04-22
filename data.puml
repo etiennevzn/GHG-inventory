@@ -43,7 +43,6 @@ class DIM_PERSONNEL << Dimension >> {
   + id_personnel : INT <<PK>>
   --
   + fonction_personnel : VARCHAR
-  + service : VARCHAR
 }
 
 class DIM_SITE << Dimension >> {
