@@ -69,9 +69,9 @@ On vient ensuite empiler les données du jour à la suite de toutes les autres d
 
 L'ETL prend la forme de fonctions. On fait en fait une boucle (for chaque jour entre tel jour et tel jour...). On traite toutes les données de la journée, puis les suivantes etc. 
 
-Réfléchir pour la création de clé à chaque jour ? 
-
 Choisir un fuseau horaire commun à tous les sites. Puis dès que l'on extrait une date, on transforme la date vers ce fuseau horaire. 
+
+Extraire -> Tranformer (langue, date...) -> ajouter aux tables de fait / dimension
 
 # Tableau de bord
 Streamlit
