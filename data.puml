@@ -47,9 +47,7 @@ class DIM_SITE << Dimension >> {
 }
 
 class DIM_DATE << Dimension >> {
-  + id_date_mission : DATE <<PK>>
-  --
-  + date_mission : DATE
+  + id_date : DATE <<PK>>
 }
 
 ' ===== TABLES DE FAITS =====
@@ -64,7 +62,7 @@ class FAIT_MATERIEL << Fait >> {
   + id_personnel : INT <<FK>>
   + id_materiel : INT <<FK>>
   + id_site : INT <<FK>>
-  + id_date_achat : INT <<FK>>
+  + id_date_achat : DATE <<FK>>
 }
 
 ' ===== POSITIONNEMENT =====
