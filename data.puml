@@ -17,7 +17,6 @@ skinparam class {
 class DIM_MISSION << Dimension >> {
   + id_mission : INT <<PK>>
   --
-  + id_personnel : VARCHAR
   + type_mission : VARCHAR
   + ville_depart : VARCHAR
   + pays_depart : VARCHAR
@@ -30,7 +29,6 @@ class DIM_MISSION << Dimension >> {
 class DIM_MATERIEL << Dimension >> {
   + id_materiel : INT <<PK>>
   --
-  + id_personnel : VARCHAR
   + type : VARCHAR
   + Modèle : VARCHAR
 }
@@ -60,7 +58,7 @@ class FAIT_MISSION << Fait >> {
 
 class FAIT_MATERIEL << Fait >> {
   + id_personnel : INT <<FK>>
-  + id_materiel : INT <<FK>>
+  + id_materielinfo : INT <<FK>>
   + id_site : INT <<FK>>
   + id_date_achat : DATE <<FK>>
 }
