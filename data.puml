@@ -6,7 +6,6 @@ skinparam nodesep 80
 skinparam ranksep 100
 skinparam shadowing false
 skinparam roundCorner 10
-
 skinparam class {
   BackgroundColor<<Fait>> #FFD700
   BackgroundColor<<Dimension>> #AACCFF
@@ -46,16 +45,13 @@ class DIM_PERSONNEL << Dimension >> {
 }
 
 class DIM_SITE << Dimension >> {
-  + id_site : INT <<PK>>
-  --
-  + nom_site : VARCHAR
+  + ID_SITE: INT <<PK>>
 }
 
 class DIM_DATE << Dimension >> {
   + id_date_mission : DATE <<PK>>
   --
   + date_mission : DATE
-  + fuseau_horaire : VARCHAR
 }
 
 ' ===== TABLES DE FAITS =====
