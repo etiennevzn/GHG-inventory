@@ -18,7 +18,6 @@ class DIM_MISSION << Dimension >> {
   + id_mission : INT <<PK>>
   --
   + id_personnel : VARCHAR
-  + date_mission : DATE
   + type_mission : VARCHAR
   + ville_depart : VARCHAR
   + pays_depart : VARCHAR
@@ -32,7 +31,6 @@ class DIM_MATERIEL << Dimension >> {
   + id_materiel : INT <<PK>>
   --
   + id_personnel : VARCHAR
-  + date_achat : DATE
   + type : VARCHAR
   + Modèle : VARCHAR
 }
