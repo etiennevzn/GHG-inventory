@@ -8,5 +8,3 @@
 [X] Tables de dimension
 [X] Tables de faits
 [ ] Voir si notre boucle respecte ce qu'il disait (ajouter les données à la suite dans la table finale)
-[ ] Trouver une solution au problème nb ingénieur
-[ ] Voir si les alias pour noms des colonnes des tables de faits sont utiles
