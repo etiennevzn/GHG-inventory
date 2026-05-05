@@ -54,14 +54,14 @@ class FAIT_MISSION << Fait >> {
   + ID_PERSONNEL : INT <<FK>>
   + id_mission : INT <<FK>>
   + ID_SITE : INT <<FK>>
-  + ID_DATE : DATE <<FK>>
+  + ID_DATE_MISSION : DATE <<FK>>
 }
 
 class FAIT_MATERIEL << Fait >> {
   + ID_PERSONNEL : INT <<FK>>
   + ID_MATERIEL : INT <<FK>>
   + ID_SITE : INT <<FK>>
-  + ID_DATE : DATE <<FK>>
+  + ID_DATE_ACHAT : DATE <<FK>>
 }
 
 ' ===== POSITIONNEMENT =====
