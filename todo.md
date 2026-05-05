@@ -1,9 +1,10 @@
+[ ] Priorité : voir comment nettoyer les NaN dans les données de matériel (reprendre le TD)
+
 [X] Architecture Data Warehouse 
 [ ] ETL journaliser
 [ ] Questions
 [ ] Tableau de bord
 [ ] Slides
-[ ] Voir comment nettoyer les NaN dans les données de matériel
 [x] Créer la table de dimension date 
 [X] Tables de dimension
 [X] Tables de faits
