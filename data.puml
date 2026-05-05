@@ -15,30 +15,30 @@ skinparam class {
 
 ' ===== DIMENSIONS PARTAGÉES / HAUT =====
 class DIM_MISSION << Dimension >> {
-  + id_mission : INT <<PK>>
+  + ID_MISSION	 : INT <<PK>>
   --
-  + type_mission : VARCHAR
-  + ville_depart : VARCHAR
-  + pays_depart : VARCHAR
-  + ville_destination : VARCHAR
-  + pays_destination : VARCHAR
-  + transport : VARCHAR
-  + aller_retour : BOOLEEN  
+  + TYPE_MISSION : VARCHAR
+  + VILLE_DEPART : VARCHAR
+  + PAYS_DEPART : VARCHAR
+  + VILLE_DESTINATION : VARCHAR
+  + PAYS_DESTINATION : VARCHAR
+  + TRANSPORT : VARCHAR
+  + ALLER_RETOUR : BOOLEEN  
 }
 
 class DIM_MATERIEL << Dimension >> {
-  + id_materiel : INT <<PK>>
+  + ID_MATERIEL : INT <<PK>>
   --
-  + type : VARCHAR
-  + Modèle : VARCHAR
+  + TYPE : VARCHAR
+  + MODELE : VARCHAR
 }
 
 ' ===== DIMENSION CENTRALE PARTAGÉE =====
 class DIM_PERSONNEL << Dimension >> {
-  + id_personnel : INT <<PK>>
+  + ID_PERSONNEL : INT <<PK>>
   --
-  + fonction_personnel : VARCHAR
-  + site : VARCHAR
+  + FONCTION_PERSONNEL : VARCHAR
+  + ID_SITE : VARCHAR
 }
 
 class DIM_SITE << Dimension >> {
@@ -46,22 +46,22 @@ class DIM_SITE << Dimension >> {
 }
 
 class DIM_DATE << Dimension >> {
-  + id_date : DATE <<PK>>
+  + ID_DATE : DATE <<PK>>
 }
 
 ' ===== TABLES DE FAITS =====
 class FAIT_MISSION << Fait >> {
-  + id_personnel : INT <<FK>>
+  + ID_PERSONNEL : INT <<FK>>
   + id_mission : INT <<FK>>
-  + id_site : INT <<FK>>
-  + id_date_mission : DATE <<FK>>
+  + ID_SITE : INT <<FK>>
+  + ID_DATE : DATE <<FK>>
 }
 
 class FAIT_MATERIEL << Fait >> {
-  + id_personnel : INT <<FK>>
-  + id_materielinfo : INT <<FK>>
-  + id_site : INT <<FK>>
-  + id_date_achat : DATE <<FK>>
+  + ID_PERSONNEL : INT <<FK>>
+  + ID_MATERIEL : INT <<FK>>
+  + ID_SITE : INT <<FK>>
+  + ID_DATE : DATE <<FK>>
 }
 
 ' ===== POSITIONNEMENT =====
