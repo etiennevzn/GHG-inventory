@@ -15,3 +15,4 @@
 [ ] Clarifier transports en communs et voir quel facteur prendre pour les bus
 [ ] coeff taxi : 1.2 ou 1.3 ??
 [ ] Verifier l'age pendant la mission (mettre une borne inf et borne max)
+[ ] Est-ce que secteur d'activité = fonction personnel ? 
