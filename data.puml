@@ -39,6 +39,7 @@ class DIM_PERSONNEL << Dimension >> {
   --
   + FONCTION_PERSONNEL : VARCHAR
   + ID_SITE : VARCHAR
+  + AGE : INT
 }
 
 class DIM_SITE << Dimension >> {
