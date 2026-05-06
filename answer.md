@@ -11,4 +11,5 @@
     2026-05-30      
     2026-07-22      
     2026-10-04      
-10. 
+10. Business Meeting
+11. Los Angeles
