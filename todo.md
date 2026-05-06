@@ -34,5 +34,3 @@ La distance du vol est environ 4,6 fois plus longue que celle du taxi
 Tu voyages seul dans le taxi (1 passager), alors que pour l'avion j'ai compté l'émission par passager — si on prend l'émission totale de l'avion (avec ~250 passagers), on parle de ~440 tonnes pour le vol entier, sans comparaison possible
 
 Si on remplit le taxi avec 4 personnes, l'écart se creuse encore plus en faveur du taxi (190 kg de CO₂ par personne contre 1,77 tonne pour le vol).
-
-[ ] Question 20 : Est-ce que toute la data est bien de Avril à Novembre
