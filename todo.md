@@ -1,6 +1,7 @@
 [ ] Priorité : voir comment nettoyer les NaN dans les données de matériel (reprendre le TD)
 
 [ ] Repasser sur toutes les questions et vérifier que la logique est bonne 
+[ ] Organiser fichiers dans les dossiers
 
 [X] Architecture Data Warehouse 
 [ ] ETL journaliser
