@@ -15,9 +15,9 @@
 11. Los Angeles
 12. 273.64634800502006 tCO2e
 13. 345.54 tCO2e
-14. Data Engineer : 634.96 tCO2e
+14. Data Engineer
 15. Age moyen : 59.34
-16. Wellington : 3243.92 tCO2e
-17 :Development            226.581612 tCO2e
-    Business Meeting       193.308880 tCO2e
-    Team Meeting           191.366629 tCO2e
+16. Wellington 
+17 :Development        
+    Business Meeting       
+    Team Meeting           

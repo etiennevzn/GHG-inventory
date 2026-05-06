@@ -1,5 +1,7 @@
 [ ] Priorité : voir comment nettoyer les NaN dans les données de matériel (reprendre le TD)
 
+[ ] Repasser sur toutes les questions et vérifier que la logique est bonne 
+
 [X] Architecture Data Warehouse 
 [ ] ETL journaliser
 [ ] Questions
@@ -16,6 +18,7 @@
 [ ] coeff taxi : 1.2 ou 1.3 ??
 [ ] Verifier l'age pendant la mission (mettre une borne inf et borne max)
 [ ] Est-ce que secteur d'activité = fonction personnel ? 
+[ ] Ambiguite seminaire / conférence (questions 13/14)
 [ ] Question 18 dépends uniquement du trajet et non du matériel donc beaucoup de duplicat de valeurs pour des missions différentes
 [ ] Question 18 double check si le calcul des emission du taxi (top1) est bon (2625.9 miles de route) plus importante que celle de  Shanghai (19 631km en avion)
 
