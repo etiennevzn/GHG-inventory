@@ -13,3 +13,5 @@
     2026-10-04      
 10. Data Engineer	
 11. Los Angeles
+12. 273.64634800502006 tCO2e
+13. 345.54 tCO2e
