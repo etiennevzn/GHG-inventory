@@ -14,11 +14,6 @@
 [ ] Voir si notre boucle respecte ce qu'il disait (ajouter les données à la suite dans la table finale)
 [ ] Pour les trajets dans la même ville, trouver une solution pour la distance
 [ ] Séparer les fichiers (mettre certaines fonctions dans un fichier utils par exemple)
-[ ] Clarifier transports en communs et voir quel facteur prendre pour les bus
-[ ] coeff taxi : 1.2 ou 1.3 ??
-[ ] Verifier l'age pendant la mission (mettre une borne inf et borne max)
-[ ] Est-ce que secteur d'activité = fonction personnel ? 
-[ ] Ambiguite seminaire / conférence (questions 13/14)
 [ ] Question 18 dépends uniquement du trajet et non du matériel donc beaucoup de duplicat de valeurs pour des missions différentes
 [ ] Question 18 double check si le calcul des emission du taxi (top1) est bon (2625.9 miles de route) plus importante que celle de  Shanghai (19 631km en avion)
 
