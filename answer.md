@@ -1,11 +1,11 @@
 1. 929
 2. 2197
 3. 7696
-4. 1585
-5. 480.921 tCO2e
-6. 61.723 tCO2e
-7. 11.8 tCO2e
-8. 25703.59 tCO2e
+4. 1970
+5. 649.265 tCO2e
+6. 75.402 tCO2e
+7. 16.07 tCO2e
+8. 25704.48 tCO2e
 9.  2026-08-05      
     2026-05-15      
     2026-05-30      
@@ -13,11 +13,11 @@
     2026-10-04      
 10. Data Engineer	
 11. Los Angeles
-12. 273.64634800502006 tCO2e
-13. 341.46 tCO2e
+12. 273.81 tCO2e
+13. 341.47 tCO2e
 14. Data Engineer
 15. Age moyen : 59.34
 16. Wellington 
-17 :Development        
-    Business Meeting       
-    Team Meeting           
+17 :Development (Développement)   
+    Business Meeting (Rencontre entreprises)     
+    Team Meeting (Réunion)        

@@ -3,6 +3,7 @@
 [ ] Repasser sur toutes les questions et vérifier que la logique est bonne 
 [ ] Organiser fichiers dans les dossiers
 [ ] Voir si notre boucle respecte ce qu'il disait (ajouter les données à la suite dans la table finale)
+[ ] Supprimer les tables de dimension inutiles + update UML
 [ ] Séparer les fichiers (mettre certaines fonctions dans un fichier utils par exemple)
 [X] Priorité : voir comment nettoyer les NaN dans les données de matériel 
 [X] Architecture Data Warehouse 
