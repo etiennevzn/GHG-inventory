@@ -2,9 +2,10 @@
 [ ] Slides
 [ ] Repasser sur toutes les questions et vérifier que la logique est bonne 
 [ ] Organiser fichiers dans les dossiers
-[ ] Modifier les fonctions de traitement pour mettre la boucle sur les dates à l'extérieur
+[X] Modifier les fonctions de traitement pour mettre la boucle sur les dates à l'extérieur
 [ ] Supprimer les tables de dimension inutiles + update UML
-[ ] Séparer les fichiers (mettre certaines fonctions dans un fichier utils par exemple)
+[ ] Séparer les fichiers ? (mettre certaines fonctions dans un fichier utils par exemple)
+[ ] Est-ce que la fonctions d'extraction du personnel on sort la boucle de la fonction ?
 [X] Priorité : voir comment nettoyer les NaN dans les données de matériel 
 [X] Architecture Data Warehouse 
 [X] ETL journaliser
