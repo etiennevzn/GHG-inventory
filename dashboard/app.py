@@ -11,19 +11,23 @@ from plotly.subplots import make_subplots
 
 from data import (
     PALETTE, PALETTE_LIST, GRADIENT,
-    Q1, Q2, Q3, Q4, Q5, Q6, Q7, Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17,
-    EMISSIONS_PAR_SECTEUR, IMPACT_MAT_SECTEUR, IMPACT_TOTAL_SECTEUR,
-    EMISSIONS_PAR_SITE, IMPACT_MAT_SITE, IMPACT_TOTAL_SITE,
+    SITES,
+    Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17,
+    IMPACT_TOTAL_SECTEUR, IMPACT_TOTAL_SITE,
     TOP3_CADRES_EUROPE_MAI, TOP_MISSIONS_PARIS,
     EMISSIONS_MENSUEL_TRANSPORT_SITE, EMISSIONS_MENSUEL_GLOBAL,
-    SITES,
+)
+from star_model import (
+    init_star_model,
+    query_q1, query_q2, query_q3, query_q4, query_q5, query_q6, query_q7,
+    calculate_total_impact,
 )
 
 # ================================================================
 # CONFIGURATION DE LA PAGE
 # ================================================================
 st.set_page_config(
-    page_title="BGES Dashboard — NF26",
+    page_title="Projet BGES Dashboard — NF26",
     page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -262,6 +266,22 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+
+# ================================================================
+# INITIALISATION DU MODÈLE ÉTOILE
+# ================================================================
+placeholder = st.empty()
+with placeholder.container():
+    st.title("Initialisation des données...")
+
+tables = init_star_model()
+
+if not tables:
+    st.error("Impossible de charger le modèle étoile. Avez-vous exécuté les cellules d'export du notebook ETL.ipynb ?")
+    st.stop()
+
+placeholder.empty()  # Enlever le message d'initialisation
+
 # ================================================================
 # HELPERS
 # ================================================================
@@ -378,22 +398,22 @@ if page == "🏠 Accueil":
         unsafe_allow_html=True,
     )
 
-    # KPIs principaux
-    total_emissions = sum(s["TOT_IMPACT"] for s in IMPACT_TOTAL_SITE)
-    total_missions = sum(s["Emission_tCO2e"] for s in EMISSIONS_PAR_SITE)
-    total_materiel = sum(s["sum(IMPACT)"] for s in IMPACT_MAT_SITE)
-    total_employes = Q1 + Q2 + Q3  # approximation
+    # Indicateurs principaux — calculés dynamiquement depuis le modèle étoile
+    with st.spinner("Calcul des indicateurs carbone en cours..."):
+        total_emissions, total_materiel, total_missions = calculate_total_impact(tables)
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         st.metric("Émissions totales", f"{total_emissions:,.0f} tCO₂e")
     with c2:
-        st.metric("Missions", f"{total_missions:,.0f} tCO₂e", f"{(total_missions/total_emissions*100):.1f}%")
+        mission_pct = (total_missions/total_emissions*100) if total_emissions > 0 else 0
+        st.metric("Missions", f"{total_missions:,.0f} tCO₂e")
     with c3:
-        st.metric("Matériel info.", f"{total_materiel:,.0f} tCO₂e", f"{(total_materiel/total_emissions*100):.1f}%")
+        materiel_pct = (total_materiel/total_emissions*100) if total_emissions > 0 else 0
+        st.metric("Matériel info.", f"{total_materiel:,.0f} tCO₂e")
     with c4:
         site_max = max(IMPACT_TOTAL_SITE, key=lambda x: x["TOT_IMPACT"])
-        st.metric("Site le + impactant", site_max["ID_SITE"], f"{site_max['TOT_IMPACT']:,.0f} tCO₂e")
+        st.metric("Site le + impactant", f"{site_max['ID_SITE']} {site_max['TOT_IMPACT']:,.0f} tCO₂e")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -483,26 +503,31 @@ elif page == "👥 Effectifs":
         unsafe_allow_html=True,
     )
 
+    with st.spinner("Calcul des indicateurs effectifs en cours..."):
+        q1_value = query_q1(tables)
+        q2_value = query_q2(tables)
+        q3_value = query_q3(tables)
+
     c1, c2, c3 = st.columns(3)
     with c1:
-        st.metric("Cadres à Paris", f"{Q1:,}")
+        st.metric("Cadres à Paris", f"{q1_value:,}")
     with c2:
-        st.metric("Ing. Data aux USA", f"{Q2:,}")
+        st.metric("Ing. Data aux USA", f"{q2_value:,}")
     with c3:
-        st.metric("Ing. Informaticiens", f"{Q3:,}")
+        st.metric("Ing. Informaticiens", f"{q3_value:,}")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     section_title("📋", "Détails des questions")
 
     question_card(1, "Combien de cadres travaillent sur le site de Paris ?",
-                  f"{Q1:,} cadres", "Site de Paris uniquement")
+                  f"{q1_value:,} cadres", "Site de Paris uniquement")
 
     question_card(2, "Combien d'ingénieurs Data travaillent sur les sites aux États-Unis ?",
-                  f"{Q2:,} ingénieurs Data", "Sites de New-York et Los Angeles")
+                  f"{q2_value:,} ingénieurs Data", "Sites de New-York et Los Angeles")
 
     question_card(3, "Combien d'ingénieurs informaticiens travaillent dans l'organisation (tous sites compris) ?",
-                  f"{Q3:,} ingénieurs informaticiens", "Total sur les 6 sites de l'organisation")
+                  f"{q3_value:,} ingénieurs informaticiens", "Total sur les 6 sites de l'organisation")
 
 
 # ================================================================
@@ -519,15 +544,21 @@ elif page == "💻 Matériel informatique":
         unsafe_allow_html=True,
     )
 
+    with st.spinner("Calcul des impacts matériel en cours..."):
+        q4_value = query_q4(tables)
+        q5_value = query_q5(tables)
+        q6_value = query_q6(tables)
+        q7_value = query_q7(tables)
+
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("PC fixes achetés", f"{Q4:,}", "Juin–Sep 2026")
+        st.metric("PC fixes achetés", f"{q4_value:,} Juin–Sep 2026")
     with c2:
-        st.metric("Impact PC fixes s/écran", f"{Q5:,.1f} tCO₂e", "Mai–Oct 2026")
+        st.metric("Impact PC fixes s/écran", f"{q5_value:,.1f} tCO₂e Mai–Oct 2026")
     with c3:
-        st.metric("Impact PC portables", f"{Q6:,.1f} tCO₂e", "Ing. Data · LON+NY")
+        st.metric("Impact PC portables", f"{q6_value:,.1f} tCO₂e Ing. Data · LON+NY")
     with c4:
-        st.metric("Impact écrans cadres", f"{Q7:,.1f} tCO₂e", "Juil–Sep 2026")
+        st.metric("Impact écrans cadres", f"{q7_value:,.1f} tCO₂e Juil–Sep 2026")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -539,7 +570,7 @@ elif page == "💻 Matériel informatique":
             "PC portables<br>(ing. Data, LON+NY)",
             "Écrans cadres<br>(juil–sep, tous sites)",
         ],
-        "Impact": [Q5, Q6, Q7],
+        "Impact": [q5_value, q6_value, q7_value],
     })
     fig = go.Figure(go.Bar(
         x=cat_data["Catégorie"], y=cat_data["Impact"],
@@ -559,16 +590,16 @@ elif page == "💻 Matériel informatique":
     section_title("📋", "Détails des questions")
 
     question_card(4, "Combien de PC fixes ont été achetés par l'organisation entre juin et septembre 2026 ?",
-                  f"{Q4:,} PC fixes", "PC fixe sans écran + PC fixe tout-en-un")
+                  f"{q4_value:,} PC fixes", "PC fixe sans écran + PC fixe tout-en-un")
 
     question_card(5, "Quel a été l'impact carbone des PC fixes sans écran entre mai et octobre 2026 ?",
-                  f"{Q5:.3f} tCO₂e")
+                  f"{q5_value:.3f} tCO₂e")
 
     question_card(6, "Quel a été l'impact carbone des PC portables achetés par les ingénieurs Data entre mai et octobre 2026 sur les sites de Londres et New-York ?",
-                  f"{Q6:.3f} tCO₂e")
+                  f"{q6_value:.3f} tCO₂e")
 
     question_card(7, "Quel a été l'impact carbone des écrans achetés par les cadres entre juillet et septembre 2026 sur tous les sites ?",
-                  f"{Q7:.1f} tCO₂e")
+                  f"{q7_value:.1f} tCO₂e")
 
 
 # ================================================================
@@ -587,13 +618,13 @@ elif page == "✈️ Missions & déplacements":
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("Missions Europe", f"{Q8:,.0f} tCO₂e", "Mai–Oct 2026")
+        st.metric("Missions Europe", f"{Q8:,.0f} tCO₂e Mai–Oct 2026")
     with c2:
-        st.metric("Inter-sites Sept.", f"{Q12:,.0f} tCO₂e", "Septembre 2026")
+        st.metric("Inter-sites Sept.", f"{Q12:,.0f} tCO₂e Septembre 2026")
     with c3:
-        st.metric("Séminaires LA", f"{Q13:,.0f} tCO₂e", "Juillet 2026")
+        st.metric("Séminaires LA", f"{Q13:,.0f} tCO₂e Juillet 2026")
     with c4:
-        st.metric("Top destination", Q16["destination"], f"{Q16['emission']:,.0f} tCO₂e")
+        st.metric("Top destination", f"{Q16['destination']} {Q16['emission']:,.0f} tCO₂e")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -693,13 +724,13 @@ elif page == "🌍 Analyses transverses":
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("Secteur le + impactant", Q10["secteur"], f"{Q10['emission']:,.0f} tCO₂e")
+        st.metric("Secteur le + impactant", f"{Q10['secteur']} {Q10['emission']:,.0f} tCO₂e")
     with c2:
-        st.metric("Site le + impactant", Q11["site"], f"{Q11['emission']:,.0f} tCO₂e")
+        st.metric("Site le + impactant", f"{Q11['site']} {Q11['emission']:,.0f} tCO₂e")
     with c3:
-        st.metric("Conférences (top secteur)", Q14["secteur"], f"{Q14['emission']:,.0f} tCO₂e")
+        st.metric("Conférences (top secteur)", f"{Q14['secteur']} {Q14['emission']:,.0f} tCO₂e")
     with c4:
-        st.metric("Âge moyen ing. Data", f"{Q15:.1f} ans", "Formations Juil–Sep")
+        st.metric("Âge moyen ing. Data", f"{Q15:.1f} ans Formations Juil–Sep")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -900,4 +931,4 @@ elif page == "📊 Visualisations globales":
     df_display["Missions (tCO₂e)"] = df_display["Missions (tCO₂e)"].round(2)
     df_display["Matériel (tCO₂e)"] = df_display["Matériel (tCO₂e)"].round(2)
     df_display["Total (tCO₂e)"] = df_display["Total (tCO₂e)"].round(2)
-    st.dataframe(df_display, use_container_width=True, hide_index=True)
+    st.dataframe(df_display, width='stretch', hide_index=True)
