@@ -351,7 +351,7 @@ with st.sidebar:
                 BGES <span style="color: {PALETTE['orchidee']};">·</span> Dashboard
             </div>
             <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: #cd9be4; letter-spacing: 0.1em; margin-top: 4px;">
-                NF26 — UTC
+                NF26
             </div>
         </div>
         """,
