@@ -416,9 +416,9 @@ if page == "🏠 Accueil":
     with c4:
         if not df_site_impacts.empty:
             site_max = df_site_impacts.iloc[0]
-            st.metric("Site le plus impactant", f"{site_max['ID_SITE']} : \n\n{site_max['TOT_IMPACT']:,.0f}tCO₂e")
+            st.metric("Site le plus impactant", f"{site_max['ID_SITE']} : \n\n{site_max['TOT_IMPACT']:,.0f} tCO₂e")
         else:
-            st.error("Impossible de calculer le site le + impactant (DataFrame vide). Voir terminal pour debug.")
+            st.error("Impossible de calculer le site le plus impactant.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 

@@ -9,8 +9,12 @@ Utilise UNIQUEMENT Pandas pour éviter les problèmes Spark sur Windows.
 
 import streamlit as st
 import pandas as pd
+import numpy as np
 from pathlib import Path
 from math import radians, sin, cos, sqrt, atan2
+from geopy.distance import geodesic
+from geopy.geocoders import Nominatim
+from functools import lru_cache
 
 # CHARGEMENT DES DONNÉES
 DATA_PATH = Path(__file__).parent / "star_model_data"
@@ -22,6 +26,10 @@ COEFFS_DISTANCE = {
     "Taxi": 1.2,
     "Transports en commun": 1.5,
 }
+
+INTRA_CITY_MEAN_KM = 8.0
+INTRA_CITY_STD_KM = 3.0
+_GEOCODER = Nominatim(user_agent="bges_dashboard", timeout=5)
 
 # Coordonnées statiques pour éviter les appels réseau depuis le dashboard
 CITY_COORDS = {
@@ -94,6 +102,35 @@ def _haversine_km(lat1, lon1, lat2, lon2):
     return earth_radius_km * c
 
 
+def _intra_city_distance_km(ville, pays):
+    # Same spirit as ETL: estimate intra-city trips with a normal distribution.
+    # We use a deterministic seed per city-country pair for reproducible dashboard values.
+    seed = abs(hash((str(ville), str(pays), 42))) % (2 ** 32)
+    rng = np.random.default_rng(seed)
+    distance = float(rng.normal(INTRA_CITY_MEAN_KM, INTRA_CITY_STD_KM))
+    return 0.0 if distance < 0 else distance
+
+
+@lru_cache(maxsize=2048)
+def _get_coords(ville, pays):
+    vd = str(ville).strip()
+    pdp = str(pays).strip()
+
+    coords = CITY_COORDS.get((vd, pdp))
+    if coords:
+        return coords
+
+    # ETL-like fallback: geocode city-country if not in static dictionary.
+    try:
+        location = _GEOCODER.geocode(f"{vd}, {pdp}")
+        if location is not None:
+            return (float(location.latitude), float(location.longitude))
+    except Exception:
+        pass
+
+    return None
+
+
 def _get_distance_km(ville_depart, pays_depart, ville_destination, pays_destination):
     if not ville_depart or not ville_destination or not pays_depart or not pays_destination:
         return 0.0
@@ -104,14 +141,14 @@ def _get_distance_km(ville_depart, pays_depart, ville_destination, pays_destinat
     pds = str(pays_destination)
 
     if vd.lower() == va.lower() and pdp.lower() == pds.lower():
-        return 8.0
+        return _intra_city_distance_km(vd, pdp)
 
-    coords_depart = CITY_COORDS.get((vd, pdp))
-    coords_dest = CITY_COORDS.get((va, pds))
+    coords_depart = _get_coords(vd, pdp)
+    coords_dest = _get_coords(va, pds)
     if not coords_depart or not coords_dest:
         return 0.0
 
-    return _haversine_km(coords_depart[0], coords_depart[1], coords_dest[0], coords_dest[1])
+    return float(geodesic(coords_depart, coords_dest).kilometers)
 
 
 def _get_factor(fe_df, subsubcategory):
@@ -574,11 +611,17 @@ def calculate_impact_per_site(tables):
             how="inner"
         ).copy()
         
-        # Calculer émissions
-        fm["EMISSION_tCO2e"] = fm.apply(
-            lambda r: _compute_mission_emission_tco2e(r, fe_transports, fe_vehicules), 
-            axis=1
-        )
+        # Si une émission est déjà stockée (ETL), on la réutilise pour rester strictement cohérent.
+        emission_candidates = ["EMISSION_tCO2e", "Emission_tCO2e", "EMISSION", "EMISSION_CALC"]
+        emission_col = next((c for c in emission_candidates if c in fm.columns), None)
+
+        if emission_col is not None:
+            fm["EMISSION_tCO2e"] = pd.to_numeric(fm[emission_col], errors="coerce").fillna(0)
+        else:
+            fm["EMISSION_tCO2e"] = fm.apply(
+                lambda r: _compute_mission_emission_tco2e(r, fe_transports, fe_vehicules), 
+                axis=1
+            )
         
         # Agréger par site
         missions_by_site = fm.groupby("ID_SITE", as_index=False)["EMISSION_tCO2e"].sum()
@@ -600,15 +643,17 @@ def calculate_impact_per_site(tables):
             suffixes=("_mat", "_impact")
         )
         
-        mat = mat.merge(
-            tables["dim_personnel"][["ID_PERSONNEL", "ID_SITE"]], 
-            on="ID_PERSONNEL", 
-            how="left",
-            suffixes=("_fact", "_personnel")
-        )
+        # ETL: l'ID_SITE du matériel provient de fait_materiel; fallback via personnel si nécessaire.
+        if "ID_SITE" in mat.columns:
+            id_site_col = "ID_SITE"
+        else:
+            mat = mat.merge(
+                tables["dim_personnel"][["ID_PERSONNEL", "ID_SITE"]], 
+                on="ID_PERSONNEL", 
+                how="left",
+            )
+            id_site_col = "ID_SITE"
 
-        # Chercher la colonne ID_SITE (peut être ID_SITE_personnel si conflit)
-        id_site_col = "ID_SITE_personnel" if "ID_SITE_personnel" in mat.columns else "ID_SITE"
         if id_site_col not in mat.columns:
             return pd.DataFrame()
         
