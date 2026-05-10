@@ -337,7 +337,7 @@ def question_card(num, question, answer, sub=None):
         unsafe_allow_html=True,
     )
 
-def section_title(icon, title):
+def section_title(title, icon=""):
     st.markdown(f'<div class="section-title">{icon} {title}</div>', unsafe_allow_html=True)
 
 
@@ -399,8 +399,8 @@ if page == "🏠 Accueil":
         unsafe_allow_html=True,
     )
 
-    # Indicateurs principaux — calculés dynamiquement depuis le modèle étoile
-    with st.spinner("Calcul des indicateurs carbone en cours..."):
+    # Message d'attente pendant le calcul des indicateurs depuis les données du modèle étoile
+    with st.spinner("Calcul des indicateurs en cours..."):
         total_emissions, total_materiel, total_missions = calculate_total_impact(tables)
         df_site_impacts = calculate_impact_per_site(tables)
 
@@ -416,7 +416,7 @@ if page == "🏠 Accueil":
     with c4:
         if not df_site_impacts.empty:
             site_max = df_site_impacts.iloc[0]
-            st.metric("Site le + impactant", site_max["ID_SITE"], f"{site_max['TOT_IMPACT']:,.0f} tCO₂e")
+            st.metric("Site le plus impactant", f"{site_max['ID_SITE']} : \n\n{site_max['TOT_IMPACT']:,.0f}tCO₂e")
         else:
             st.error("Impossible de calculer le site le + impactant (DataFrame vide). Voir terminal pour debug.")
 
@@ -426,7 +426,7 @@ if page == "🏠 Accueil":
     col_left, col_right = st.columns([1.4, 1])
 
     with col_left:
-        section_title("📍", "Impact carbone par site")
+        section_title("Impact carbone par site")
         df_site = pd.DataFrame(IMPACT_TOTAL_SITE).sort_values("TOT_IMPACT", ascending=True)
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -449,7 +449,7 @@ if page == "🏠 Accueil":
         st.plotly_chart(fig, width='stretch')
 
     with col_right:
-        section_title("🥧", "Répartition des sources")
+        section_title("Répartition des sources")
         fig = go.Figure(data=[go.Pie(
             labels=["Missions", "Matériel info."],
             values=[total_missions, total_materiel],
@@ -465,7 +465,7 @@ if page == "🏠 Accueil":
         st.plotly_chart(fig, width='stretch')
 
     # Évolution mensuelle
-    section_title("📈", "Évolution mensuelle de l'empreinte carbone")
+    section_title("Évolution mensuelle de l'empreinte carbone")
     df_month = pd.DataFrame(EMISSIONS_MENSUEL_GLOBAL).sort_values("MOIS")
     mois_noms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
     df_month["MOIS_LABEL"] = df_month["MOIS"].apply(lambda m: mois_noms[m - 1])
