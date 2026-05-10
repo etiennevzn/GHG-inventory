@@ -21,6 +21,7 @@ from star_model import (
     init_star_model,
     query_q1, query_q2, query_q3, query_q4, query_q5, query_q6, query_q7,
     calculate_total_impact,
+    calculate_impact_per_site,
 )
 
 # ================================================================
@@ -401,6 +402,7 @@ if page == "🏠 Accueil":
     # Indicateurs principaux — calculés dynamiquement depuis le modèle étoile
     with st.spinner("Calcul des indicateurs carbone en cours..."):
         total_emissions, total_materiel, total_missions = calculate_total_impact(tables)
+        df_site_impacts = calculate_impact_per_site(tables)
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -412,8 +414,11 @@ if page == "🏠 Accueil":
         materiel_pct = (total_materiel/total_emissions*100) if total_emissions > 0 else 0
         st.metric("Matériel info.", f"{total_materiel:,.0f} tCO₂e")
     with c4:
-        site_max = max(IMPACT_TOTAL_SITE, key=lambda x: x["TOT_IMPACT"])
-        st.metric("Site le + impactant", f"{site_max['ID_SITE']} {site_max['TOT_IMPACT']:,.0f} tCO₂e")
+        if not df_site_impacts.empty:
+            site_max = df_site_impacts.iloc[0]
+            st.metric("Site le + impactant", site_max["ID_SITE"], f"{site_max['TOT_IMPACT']:,.0f} tCO₂e")
+        else:
+            st.error("Impossible de calculer le site le + impactant (DataFrame vide). Voir terminal pour debug.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -441,7 +446,7 @@ if page == "🏠 Accueil":
         fig.update_layout(barmode="stack")
         apply_layout(fig, height=420)
         fig.update_layout(xaxis_title="tCO₂e", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col_right:
         section_title("🥧", "Répartition des sources")
@@ -457,7 +462,7 @@ if page == "🏠 Accueil":
                               font=dict(size=22, color="#f5f0ff"), showarrow=False)],
         )
         apply_layout(fig, height=420)
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     # Évolution mensuelle
     section_title("📈", "Évolution mensuelle de l'empreinte carbone")
@@ -486,7 +491,7 @@ if page == "🏠 Accueil":
     fig.update_layout(barmode="stack")
     apply_layout(fig, height=450)
     fig.update_layout(yaxis_title="tCO₂e", xaxis_title="")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
 
 # ================================================================
@@ -585,7 +590,7 @@ elif page == "💻 Matériel informatique":
     ))
     apply_layout(fig, height=420)
     fig.update_layout(yaxis_title="tCO₂e", xaxis_title="", showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     section_title("📋", "Détails des questions")
 
@@ -650,7 +655,7 @@ elif page == "✈️ Missions & déplacements":
         apply_layout(fig, height=380)
         fig.update_layout(xaxis_title="tCO₂e", yaxis_title="", showlegend=False,
                           yaxis=dict(autorange="reversed", gridcolor="rgba(205, 155, 228, 0.12)"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     with col_right:
         section_title("🏆", "Top 5 missions · site Paris")
@@ -674,7 +679,7 @@ elif page == "✈️ Missions & déplacements":
         apply_layout(fig, height=380)
         fig.update_layout(xaxis_title="tCO₂e", yaxis_title="", showlegend=False,
                           yaxis=dict(autorange="reversed", gridcolor="rgba(205, 155, 228, 0.12)"))
-        st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, width='stretch')
 
     section_title("📋", "Détails des questions")
 
@@ -754,7 +759,7 @@ elif page == "🌍 Analyses transverses":
         fig.update_layout(barmode="stack")
         apply_layout(fig, height=400)
         fig.update_layout(xaxis_title="tCO₂e", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     with col_right:
         section_title("🏢", "Impact total par site")
@@ -773,7 +778,7 @@ elif page == "🌍 Analyses transverses":
         fig.update_layout(barmode="stack")
         apply_layout(fig, height=400)
         fig.update_layout(xaxis_title="tCO₂e", yaxis_title="")
-        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Top 3 catégories cadres Europe Mai (Q17)
     section_title("🥇", "Top 3 catégories de missions · cadres Europe · mai 2026")
@@ -790,7 +795,7 @@ elif page == "🌍 Analyses transverses":
     ))
     apply_layout(fig, height=380)
     fig.update_layout(yaxis_title="tCO₂e", xaxis_title="", showlegend=False)
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     section_title("📋", "Détails des questions")
 
@@ -891,7 +896,7 @@ elif page == "📊 Visualisations globales":
     for ann in fig["layout"]["annotations"]:
         ann["font"] = dict(family="Space Grotesk", size=13, color="#f5f0ff")
 
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Question 20 — Impact carbone global mensuel
     section_title("🌍", "Q20 · Impact carbone global mensuel de l'organisation")
@@ -922,7 +927,7 @@ elif page == "📊 Visualisations globales":
     fig.update_layout(barmode="stack")
     apply_layout(fig, height=500)
     fig.update_layout(yaxis_title="tCO₂e", xaxis_title="Mois")
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width='stretch')
 
     # Tableau récapitulatif
     section_title("📋", "Données mensuelles détaillées")

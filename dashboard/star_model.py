@@ -560,6 +560,74 @@ def calculate_total_impact(tables, date_start=None, date_end=None):
         print(f"Erreur lors du calcul d'impact total : {e}")
         return 0.0, 0.0, 0.0
 
+def calculate_impact_per_site(tables):
+    if tables is None:
+        return pd.DataFrame()
+    
+    try:
+        fe_transports, fe_vehicules = load_emission_factors()
+        
+        # Impact missions par site
+        fm = tables["fait_mission"].merge(
+            tables["dim_mission"],
+            on="ID_MISSION",
+            how="inner"
+        ).copy()
+        
+        # Calculer émissions
+        fm["EMISSION_tCO2e"] = fm.apply(
+            lambda r: _compute_mission_emission_tco2e(r, fe_transports, fe_vehicules), 
+            axis=1
+        )
+        
+        # Agréger par site
+        missions_by_site = fm.groupby("ID_SITE", as_index=False)["EMISSION_tCO2e"].sum()
+        missions_by_site = missions_by_site.rename(columns={"EMISSION_tCO2e": "missions_tCO2e"})
+
+        # Impact matériel par site
+        mat = tables["fait_materiel"].copy()
+        
+        mat = mat.merge(
+            tables["dim_materiel"][["ID_MATERIEL", "TYPE", "MODELE"]], 
+            on="ID_MATERIEL", 
+            how="inner"
+        )
+        
+        mat = mat.merge(
+            tables["impact_materiel_ref"][["TYPE", "MODELE", "IMPACT"]], 
+            on=["TYPE", "MODELE"], 
+            how="left",
+            suffixes=("_mat", "_impact")
+        )
+        
+        mat = mat.merge(
+            tables["dim_personnel"][["ID_PERSONNEL", "ID_SITE"]], 
+            on="ID_PERSONNEL", 
+            how="left",
+            suffixes=("_fact", "_personnel")
+        )
+
+        # Chercher la colonne ID_SITE (peut être ID_SITE_personnel si conflit)
+        id_site_col = "ID_SITE_personnel" if "ID_SITE_personnel" in mat.columns else "ID_SITE"
+        if id_site_col not in mat.columns:
+            return pd.DataFrame()
+        
+        # Convertir impact
+        mat["impact_tCO2e"] = pd.to_numeric(mat["IMPACT"], errors="coerce").fillna(0) / 1000.0
+        
+        # Agréger par site
+        materiel_by_site = mat.dropna(subset=[id_site_col]).groupby(id_site_col, as_index=False)["impact_tCO2e"].sum()
+        materiel_by_site = materiel_by_site.rename(columns={id_site_col: "ID_SITE", "impact_tCO2e": "materiel_tCO2e"})
+
+        # Combinaison 
+        df_site_impacts = missions_by_site.merge(materiel_by_site, on="ID_SITE", how="outer").fillna(0)
+        df_site_impacts["TOT_IMPACT"] = df_site_impacts["missions_tCO2e"] + df_site_impacts["materiel_tCO2e"]
+
+        return df_site_impacts.sort_values("TOT_IMPACT", ascending=False)
+    
+    except Exception as e:
+        return pd.DataFrame()
+
 
 def calculate_materiel_impact_by_category(tables, date_start=None, date_end=None):
     if tables is None:
