@@ -22,6 +22,7 @@ from star_model import (
     query_q1, query_q2, query_q3, query_q4, query_q5, query_q6, query_q7,
     calculate_total_impact,
     calculate_impact_per_site,
+    calculate_monthly_impact,
 )
 
 # ================================================================
@@ -465,17 +466,18 @@ if page == "🏠 Accueil":
 
     # Évolution mensuelle
     section_title("Évolution mensuelle de l'empreinte carbone")
-    df_month = pd.DataFrame(EMISSIONS_MENSUEL_GLOBAL).sort_values("MOIS")
+    with st.spinner("Calcul des impacts mensuels en cours..."):
+        df_month = calculate_monthly_impact(tables).sort_values("MOIS")
     mois_noms = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Août', 'Sep', 'Oct', 'Nov', 'Déc']
-    df_month["MOIS_LABEL"] = df_month["MOIS"].apply(lambda m: mois_noms[m - 1])
+    df_month["MOIS_LABEL"] = df_month["MOIS"].apply(lambda m: mois_noms[int(m) - 1] if 1 <= int(m) <= 12 else "")
 
     fig = go.Figure()
     fig.add_trace(go.Bar(
-        x=df_month["MOIS_LABEL"], y=df_month["Emission_tCO2e"],
+        x=df_month["MOIS_LABEL"], y=df_month["missions_tCO2e"],
         name="Missions", marker=dict(color=PALETTE["bleu_violet"]),
     ))
     fig.add_trace(go.Bar(
-        x=df_month["MOIS_LABEL"], y=df_month["sum(IMPACT)"],
+        x=df_month["MOIS_LABEL"], y=df_month["materiel_tCO2e"],
         name="Matériel", marker=dict(color=PALETTE["rose_pastel"]),
     ))
     fig.add_trace(go.Scatter(

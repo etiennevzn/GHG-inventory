@@ -674,6 +674,86 @@ def calculate_impact_per_site(tables):
         return pd.DataFrame()
 
 
+def calculate_monthly_impact(tables):
+    """
+    Calcule l'impact carbone par mois (missions + matériel).
+    Retourne un DataFrame avec les colonnes: MOIS, missions_tCO2e, materiel_tCO2e, TOT_IMPACT
+    """
+    if tables is None:
+        return pd.DataFrame()
+    
+    try:
+        fe_transports, fe_vehicules = load_emission_factors()
+        
+        #  Impact missions par mois
+        fm = tables["fait_mission"].merge(
+            tables["dim_mission"],
+            on="ID_MISSION",
+            how="inner"
+        ).merge(
+            tables["dim_date"],
+            left_on="ID_DATE_MISSION",
+            right_on="ID_DATE",
+            how="inner"
+        ).copy()
+        
+        # Calculer les émissions 
+        fm["EMISSION_tCO2e"] = fm.apply(
+            lambda r: _compute_mission_emission_tco2e(r, fe_transports, fe_vehicules), 
+            axis=1
+        )
+        
+        # Extraire le mois de la colonne DATE ou MOIS
+        if "DATE" in fm.columns:
+            fm["DATE_COL"] = pd.to_datetime(fm["DATE"], errors="coerce")
+            fm["MONTH"] = fm["DATE_COL"].dt.month
+        else:
+            fm["MONTH"] = pd.to_datetime(fm["ID_DATE_MISSION"], errors="coerce").dt.month
+        
+        missions_by_month = fm.groupby("MONTH", as_index=False)["EMISSION_tCO2e"].sum()
+        missions_by_month.columns = ["MOIS", "missions_tCO2e"]
+        
+        # Impact du matériel par mois
+        mat = tables["fait_materiel"].merge(
+            tables["dim_materiel"][["ID_MATERIEL", "TYPE", "MODELE"]], 
+            on="ID_MATERIEL", 
+            how="inner"
+        ).merge(
+            tables["impact_materiel_ref"][["TYPE", "MODELE", "IMPACT"]], 
+            on=["TYPE", "MODELE"], 
+            how="inner"
+        ).merge(
+            tables["dim_date"],
+            left_on="ID_DATE_ACHAT",
+            right_on="ID_DATE",
+            how="inner"
+        ).copy()
+        
+        # Extraire le mois
+        if "DATE" in mat.columns:
+            mat["DATE_COL"] = pd.to_datetime(mat["DATE"], errors="coerce")
+            mat["MONTH"] = mat["DATE_COL"].dt.month
+        else:
+            mat["MONTH"] = pd.to_datetime(mat["ID_DATE_ACHAT"], errors="coerce").dt.month
+        
+        # Convertir impact
+        mat["impact_tCO2e"] = pd.to_numeric(mat["IMPACT"], errors="coerce").fillna(0) / 1000.0
+        
+        materiel_by_month = mat.groupby("MONTH", as_index=False)["impact_tCO2e"].sum()
+        materiel_by_month.columns = ["MOIS", "materiel_tCO2e"]
+        
+        # Somme pour impact total
+        df_monthly = missions_by_month.merge(materiel_by_month, on="MOIS", how="outer").fillna(0)
+        df_monthly["TOT_IMPACT"] = df_monthly["missions_tCO2e"] + df_monthly["materiel_tCO2e"]
+        df_monthly = df_monthly.sort_values("MOIS")
+        
+        return df_monthly
+    
+    except Exception as e:
+        print(f"Erreur lors du calcul d'impact mensuel : {e}")
+        return pd.DataFrame()
+
+
 def calculate_materiel_impact_by_category(tables, date_start=None, date_end=None):
     if tables is None:
         return pd.DataFrame()
