@@ -647,7 +647,7 @@ elif page == "✈️ Missions & déplacements":
     col_left, col_right = st.columns(2)
 
     with col_left:
-        section_title("📅", "Top 5 jours · missions avion (Europe)")
+        section_title("Top 5 jours les plus impactants pour les sites Européens (missions en avion)")
         df_top5 = pd.DataFrame(q9_top5, columns=["Date", "Emission_tCO2e"])
         fig = go.Figure(go.Bar(
             y=df_top5["Date"].astype(str),
@@ -668,7 +668,7 @@ elif page == "✈️ Missions & déplacements":
         st.plotly_chart(fig, width='stretch')
 
     with col_right:
-        section_title("🏆", "Top 5 missions · site Paris")
+        section_title("Top 5 missions les plus impactantes - Paris")
         df_top_paris = pd.DataFrame(q18_top5, columns=["VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"])
         df_top_paris["LABEL"] = df_top_paris["VILLE_DEPART"] + " → " + df_top_paris["VILLE_DESTINATION"]
         fig = go.Figure(go.Bar(
@@ -691,12 +691,12 @@ elif page == "✈️ Missions & déplacements":
                           yaxis=dict(autorange="reversed", gridcolor="rgba(205, 155, 228, 0.12)"))
         st.plotly_chart(fig, width='stretch')
 
-    section_title("📋", "Détails des questions")
+    section_title("Détails des questions")
 
     question_card(8, "Quel a été l'impact carbone des missions sur les sites Européens entre mai et octobre 2026 ?",
                   f"{q8_value:,.2f} tCO₂e", "Sites de Paris, Berlin et Londres")
 
-    # Question 9 — top 5 jours
+    # Affichage avec code html du top 5 jours et de leurs émissions
     st.markdown(
         f"""
         <div class="question-card">
@@ -711,16 +711,13 @@ elif page == "✈️ Missions & déplacements":
     )
 
     question_card(12, "Quel a été l'impact carbone des missions reliant chaque site (départ et arrivée = sites de l'organisation) durant le mois de septembre 2026 ?",
-                  f"{q12_value:.2f} tCO₂e", "Septembre 2026 · trajets inter-sites")
+                  f"{q12_value:.2f} tCO₂e", "Septembre 2026 - Trajets inter-sites")
 
     question_card(13, "Quel a été l'impact carbone des séminaires en juillet 2026 pour les employés de Los Angeles ?",
                   f"{q13_value:.2f} tCO₂e", "Type de mission : Conference")
 
     question_card(16, "Quelle destination a été la plus impactante (en cumul) entre mai et octobre 2026 ?",
                   q16_value["destination"], f"Cumul d'émissions : {q16_value['emission']:.2f} tCO₂e")
-
-    question_card(18, "Quelles ont été les 5 missions les plus impactantes sur le site de Paris ?",
-                  "Voir graphique ci-dessus", "Trajets dominants : Paris ↔ Wellington (avion)")
 
 
 # ================================================================
