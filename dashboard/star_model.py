@@ -694,7 +694,7 @@ def query_q18(tables):
 
     top_missions = missions.sort_values("EMISSION_CALC", ascending=False).head(5).copy()
     top_missions["EMISSION"] = pd.to_numeric(top_missions["EMISSION_CALC"], errors="coerce").fillna(0)
-    return top_missions[["VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"]].to_dict(orient="records")
+    return top_missions[["ID_MISSION", "VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"]].to_dict(orient="records")
 
 def calculate_impact_per_site(tables):
     if tables is None:

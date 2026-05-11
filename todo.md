@@ -1,6 +1,6 @@
 [ ] Revoir la fonction _missions_with_emissions du dashboard
 [ ] Continuer page missions et déplacements
-[ ] Est-ce que le tableau de bord est censé présenter les réponses aux questions de manière statique ou dynamique ? 
+[ ] Est-ce que le tableau de bord est censé présenter les réponses aux questions de manière statique ou dynamique ? est-ce que c'est grave si ça met du temps à charger ?
 [ ] A quel point on dit IA gen ? (template streamlit, conversion fonctions spark vers pandas, css...)
 [ ] Verif fonction calcul des distances pour le dashboard (uniformiser la seed)
 [ ] Corriger les left join en inner calcul dashboard

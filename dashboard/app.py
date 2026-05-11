@@ -180,6 +180,159 @@ st.markdown(
         margin-top: 0.4rem;
     }}
 
+    .paris-top-missions {{
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        margin-top: 1rem;
+    }}
+    .paris-mission-item {{
+        background: linear-gradient(135deg, #ffffff 0%, #faf7ff 100%);
+        border: 1px solid rgba(87, 103, 214, 0.12);
+        border-radius: 16px;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 2px 10px rgba(45, 27, 105, 0.04);
+    }}
+    .paris-mission-head {{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.7rem;
+    }}
+    .paris-mission-rank {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: {PALETTE["orchidee"]};
+        background: rgba(235, 156, 239, 0.12);
+        border: 1px solid rgba(235, 156, 239, 0.2);
+        border-radius: 999px;
+        padding: 0.3rem 0.65rem;
+        white-space: nowrap;
+    }}
+    .paris-route {{
+        font-family: 'Space Grotesk', sans-serif;
+        font-size: 1rem;
+        font-weight: 600;
+        color: #1a1a2e;
+        line-height: 1.35;
+    }}
+    .paris-id {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.76rem;
+        font-weight: 700;
+        color: #1a1a2e;
+        background: rgba(87, 103, 214, 0.08);
+        border: 1px solid rgba(87, 103, 214, 0.14);
+        border-radius: 999px;
+        padding: 0.28rem 0.6rem;
+        white-space: nowrap;
+    }}
+    .paris-details {{
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.65rem;
+        color: #6b6b80;
+        font-size: 0.84rem;
+    }}
+    .paris-pill {{
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.28rem 0.58rem;
+        border-radius: 999px;
+        background: rgba(87, 103, 214, 0.08);
+        border: 1px solid rgba(87, 103, 214, 0.14);
+    }}
+    .paris-track {{
+        position: relative;
+        width: 100%;
+        height: 10px;
+        background: rgba(87, 103, 214, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+        margin-bottom: 0.55rem;
+    }}
+    .paris-fill {{
+        position: absolute;
+        inset: 0 auto 0 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, {PALETTE["lavande"]}, {PALETTE["orchidee"]});
+    }}
+    .paris-value {{
+        text-align: right;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }}
+
+    .top-days-list {{
+        display: flex;
+        flex-direction: column;
+        gap: 0.7rem;
+        margin-top: 0.75rem;
+    }}
+    .top-day-item {{
+        background: linear-gradient(135deg, #ffffff 0%, #f7f8ff 100%);
+        border: 1px solid rgba(87, 103, 214, 0.10);
+        border-radius: 16px;
+        padding: 1rem 1.1rem;
+        box-shadow: 0 2px 10px rgba(45, 27, 105, 0.04);
+    }}
+    .top-day-head {{
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 1rem;
+        margin-bottom: 0.55rem;
+    }}
+    .top-day-date {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }}
+    .top-day-rank {{
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.74rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: {PALETTE["bleu_violet"]};
+        background: rgba(87, 103, 214, 0.08);
+        border: 1px solid rgba(87, 103, 214, 0.14);
+        border-radius: 999px;
+        padding: 0.28rem 0.6rem;
+        white-space: nowrap;
+    }}
+    .top-day-track {{
+        position: relative;
+        width: 100%;
+        height: 10px;
+        background: rgba(87, 103, 214, 0.08);
+        border-radius: 999px;
+        overflow: hidden;
+        margin: 0.65rem 0 0.45rem 0;
+    }}
+    .top-day-fill {{
+        position: absolute;
+        inset: 0 auto 0 0;
+        border-radius: 999px;
+        background: linear-gradient(90deg, {PALETTE["bleu_violet"]}, {PALETTE["rose_pastel"]});
+    }}
+    .top-day-value {{
+        text-align: right;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.92rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }}
+
     /* Header banner */
     .hero-banner {{
         background: linear-gradient(135deg, #ffffff 0%, #f0f1ff 100%);
@@ -649,47 +802,63 @@ elif page == "✈️ Missions & déplacements":
     with col_left:
         section_title("Top 5 jours les plus impactants pour les sites Européens (missions en avion)")
         df_top5 = pd.DataFrame(q9_top5, columns=["Date", "Emission_tCO2e"])
-        fig = go.Figure(go.Bar(
-            y=df_top5["Date"].astype(str),
-            x=df_top5["Emission_tCO2e"],
-            orientation="h",
-            marker=dict(
-                color=df_top5["Emission_tCO2e"],
-                colorscale=[[0, PALETTE["bleu_violet"]], [1, PALETTE["rose_pastel"]]],
-                line=dict(color="rgba(255,255,255,0.2)", width=1),
-            ),
-            text=[f"{v:.1f}" for v in df_top5["Emission_tCO2e"]],
-            textposition="outside",
-            textfont=dict(family="JetBrains Mono", size=11, color="#f5f0ff"),
-        ))
-        apply_layout(fig, height=380)
-        fig.update_layout(xaxis_title="tCO₂e", yaxis_title="", showlegend=False,
-                          yaxis=dict(autorange="reversed", gridcolor="rgba(205, 155, 228, 0.12)"))
-        st.plotly_chart(fig, width='stretch')
+        if df_top5.empty:
+            st.info("Aucun jour disponible pour cette sélection.")
+        else:
+            df_top5 = df_top5.reset_index(drop=True)
+            max_emission = float(df_top5["Emission_tCO2e"].max() or 0)
+            day_cards = []
+            for rank, row in df_top5.iterrows():
+                width_pct = (row["Emission_tCO2e"] / max_emission * 100) if max_emission > 0 else 0
+                day_cards.append(
+                    f'<div class="top-day-item">'
+                    f'<div class="top-day-head">'
+                    f'<div class="top-day-date">{row["Date"]}</div>'
+                    f'<div class="top-day-rank">#{rank + 1}</div>'
+                    f'</div>'
+                    f'<div class="top-day-track">'
+                    f'<div class="top-day-fill" style="width: {width_pct:.1f}%;"></div>'
+                    f'</div>'
+                    f'<div class="top-day-value">{row["Emission_tCO2e"]:.2f} tCO₂e</div>'
+                    f'</div>'
+                )
+            st.markdown(
+                f'<div class="top-days-list">{"".join(day_cards)}</div>',
+                unsafe_allow_html=True,
+            )
 
     with col_right:
         section_title("Top 5 missions les plus impactantes - Paris")
-        df_top_paris = pd.DataFrame(q18_top5, columns=["VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"])
-        df_top_paris["LABEL"] = df_top_paris["VILLE_DEPART"] + " → " + df_top_paris["VILLE_DESTINATION"]
-        fig = go.Figure(go.Bar(
-            y=df_top_paris["LABEL"],
-            x=df_top_paris["EMISSION"],
-            orientation="h",
-            marker=dict(
-                color=df_top_paris["EMISSION"],
-                colorscale=[[0, PALETTE["lavande"]], [1, PALETTE["orchidee"]]],
-                line=dict(color="rgba(255,255,255,0.2)", width=1),
-            ),
-            text=[f"{v:.2f}" for v in df_top_paris["EMISSION"]],
-            textposition="outside",
-            textfont=dict(family="JetBrains Mono", size=11, color="#f5f0ff"),
-            customdata=df_top_paris[["TYPE_MISSION", "TRANSPORT"]].values,
-            hovertemplate="<b>%{y}</b><br>Type: %{customdata[0]}<br>Transport: %{customdata[1]}<br>Émission: %{x:.4f} tCO₂e<extra></extra>",
-        ))
-        apply_layout(fig, height=380)
-        fig.update_layout(xaxis_title="tCO₂e", yaxis_title="", showlegend=False,
-                          yaxis=dict(autorange="reversed", gridcolor="rgba(205, 155, 228, 0.12)"))
-        st.plotly_chart(fig, width='stretch')
+        df_top_paris = pd.DataFrame(q18_top5, columns=["ID_MISSION", "VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"])
+        if df_top_paris.empty:
+            st.info("Aucune mission disponible pour le site de Paris sur la période sélectionnée.")
+        else:
+            df_top_paris = df_top_paris.sort_values("EMISSION", ascending=False).head(5).reset_index(drop=True)
+            max_emission = float(df_top_paris["EMISSION"].max() or 0)
+            rows_html = []
+            for rank, row in df_top_paris.iterrows():
+                width_pct = (row["EMISSION"] / max_emission * 100) if max_emission > 0 else 0
+                rows_html.append(
+                    f'<div class="paris-mission-item">'
+                    f'<div class="paris-mission-head">'
+                    f'<div class="paris-route">{row["VILLE_DEPART"]} → {row["VILLE_DESTINATION"]}</div>'
+                    f'<div class="paris-mission-rank">#{rank + 1}</div>'
+                    f'</div>'
+                    f'<div class="paris-details">'
+                    f'<span class="paris-id">ID : {row["ID_MISSION"]}</span>'
+                    f'<span class="paris-pill">{row["TYPE_MISSION"]}</span>'
+                    f'<span class="paris-pill">{row["TRANSPORT"]}</span>'
+                    f'</div>'
+                    f'<div class="paris-track">'
+                    f'<div class="paris-fill" style="width: {width_pct:.1f}%;"></div>'
+                    f'</div>'
+                    f'<div class="paris-value">{row["EMISSION"]:.2f} tCO₂e</div>'
+                    f'</div>'
+                )
+            st.markdown(
+                f'<div class="paris-top-missions">{"".join(rows_html)}</div>',
+                unsafe_allow_html=True,
+            )
 
     section_title("Détails des questions")
 
