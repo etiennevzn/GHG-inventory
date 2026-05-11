@@ -12,15 +12,14 @@ from plotly.subplots import make_subplots
 from data import (
     PALETTE, PALETTE_LIST, GRADIENT,
     SITES,
-    Q10, Q11, Q14, Q15, Q17,
     IMPACT_TOTAL_SECTEUR, IMPACT_TOTAL_SITE,
-    TOP3_CADRES_EUROPE_MAI,
     EMISSIONS_MENSUEL_TRANSPORT_SITE, EMISSIONS_MENSUEL_GLOBAL,
 )
 from star_model import (
     init_star_model,
     query_q1, query_q2, query_q3, query_q4, query_q5, query_q6, query_q7,
-    query_q8, query_q9, query_q12, query_q13, query_q16, query_q18,
+    query_q8, query_q9, query_q10, query_q11, query_q12, query_q13, query_q14,
+    query_q15, query_q16, query_q17, query_q18,
     calculate_total_impact,
     calculate_impact_per_site,
     calculate_monthly_impact,
@@ -503,7 +502,7 @@ with st.sidebar:
         f"""
         <div style="padding: 1rem 0 1.5rem 0; border-bottom: 1px solid rgba(205, 155, 228, 0.2); margin-bottom: 1rem;">
             <div style="font-family: 'Space Grotesk'; font-weight: 700; font-size: 1.5rem; color: white;">
-                BGES <span style="color: {PALETTE['orchidee']};">·</span> Dashboard
+                BGES <span style="color: {PALETTE['orchidee']};">-</span> Dashboard
             </div>
             <div style="font-family: 'JetBrains Mono'; font-size: 0.75rem; color: #cd9be4; letter-spacing: 0.1em; margin-top: 4px;">
                 NF26
@@ -519,7 +518,7 @@ with st.sidebar:
             "🏠 Accueil",
             "👥 Effectifs",
             "💻 Matériel informatique",
-            "✈️ Missions & déplacements",
+            "✈️ Missions",
             "🌍 Analyses transverses",
             "📊 Visualisations globales",
         ],
@@ -763,13 +762,13 @@ elif page == "💻 Matériel informatique":
 
 
 # ================================================================
-# PAGE : MISSIONS & DÉPLACEMENTS (Q8, Q9, Q12, Q13, Q16, Q18)
+# PAGE : MISSIONS (Q8, Q9, Q12, Q13, Q16, Q18)
 # ================================================================
-elif page == "✈️ Missions & déplacements":
+elif page == "✈️ Missions":
     st.markdown(
         f"""
         <div class="hero-banner">
-            <div class="hero-title">Missions & déplacements</div>
+            <div class="hero-title">Missions</div>
             <div class="hero-subtitle">Impact carbone des missions</div>
         </div>
         """,
@@ -903,23 +902,30 @@ elif page == "🌍 Analyses transverses":
         unsafe_allow_html=True,
     )
 
+    with st.spinner("Calcul des analyses transverses en cours..."):
+        q10_value = query_q10(tables)
+        q11_value = query_q11(tables)
+        q14_value = query_q14(tables)
+        q15_value = query_q15(tables)
+        q17_top3 = query_q17(tables)
+
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("Secteur le + impactant", f"{Q10['secteur']} {Q10['emission']:,.0f} tCO₂e")
+        st.metric("Secteur le plus impactant", f"{q10_value['secteur']}\n\n{q10_value['emission']:,.0f} tCO₂e")
     with c2:
-        st.metric("Site le + impactant", f"{Q11['site']} {Q11['emission']:,.0f} tCO₂e")
+        st.metric("Site le plus impactant", f"{q11_value['site']}\n\n{q11_value['emission']:,.0f} tCO₂e")
     with c3:
-        st.metric("Conférences (top secteur)", f"{Q14['secteur']} {Q14['emission']:,.0f} tCO₂e")
+        st.metric("Secteur le plus impactant", f"{q14_value['secteur']}\n\n{q14_value['emission']:,.0f} tCO₂e\n\nMai-Sep. 2026")
     with c4:
-        st.metric("Âge moyen ing. Data", f"{Q15:.1f} ans Formations Juil–Sep")
+        st.metric("Âge moyen ing. Data\n\nparti en formation", f"{q15_value:.1f} ans\n\nJuil–Sep 2026")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Impact total par secteur (Q10)
-    col_left, col_right = st.columns(2)
+    col_left, col_right = st.columns([1.15, 1.0], gap="small")
 
     with col_left:
-        section_title("👔", "Impact total par secteur d'activité")
+        section_title("Impact total par secteur d'activité")
         df_sect = pd.DataFrame(IMPACT_TOTAL_SECTEUR).sort_values("TOT_IMPACT", ascending=True)
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -934,11 +940,16 @@ elif page == "🌍 Analyses transverses":
         ))
         fig.update_layout(barmode="stack")
         apply_layout(fig, height=400)
-        fig.update_layout(xaxis_title="tCO₂e", yaxis_title="")
-    st.plotly_chart(fig, width='stretch')
+        fig.update_layout(
+            xaxis_title="tCO₂e",
+            yaxis_title="",
+            legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5),
+            margin=dict(l=10, r=10, t=50, b=50),
+        )
+        st.plotly_chart(fig, width='stretch')
 
     with col_right:
-        section_title("🏢", "Impact total par site")
+        section_title("Impact total par site")
         df_site = pd.DataFrame(IMPACT_TOTAL_SITE).sort_values("TOT_IMPACT", ascending=True)
         fig = go.Figure()
         fig.add_trace(go.Bar(
@@ -953,39 +964,47 @@ elif page == "🌍 Analyses transverses":
         ))
         fig.update_layout(barmode="stack")
         apply_layout(fig, height=400)
-        fig.update_layout(xaxis_title="tCO₂e", yaxis_title="")
-    st.plotly_chart(fig, width='stretch')
+        fig.update_layout(
+            xaxis_title="tCO₂e",
+            yaxis_title="",
+            legend=dict(orientation="h", yanchor="top", y=-0.18, xanchor="center", x=0.5),
+            margin=dict(l=10, r=10, t=50, b=50),
+        )
+        st.plotly_chart(fig, width='stretch')
 
     # Top 3 catégories cadres Europe Mai (Q17)
-    section_title("🥇", "Top 3 catégories de missions · cadres Europe · mai 2026")
-    df_top3 = pd.DataFrame(TOP3_CADRES_EUROPE_MAI)
-    fig = go.Figure(go.Bar(
-        x=df_top3["TYPE_MISSION"], y=df_top3["EMISSION"],
-        marker=dict(
-            color=[PALETTE["bleu_violet"], PALETTE["mauve"], PALETTE["rose_pastel"]],
-            line=dict(color="rgba(255,255,255,0.2)", width=1),
-        ),
-        text=[f"{v:.2f} tCO₂e" for v in df_top3["EMISSION"]],
-        textposition="outside",
-        textfont=dict(family="JetBrains Mono", size=12, color="#f5f0ff"),
-    ))
-    apply_layout(fig, height=380)
-    fig.update_layout(yaxis_title="tCO₂e", xaxis_title="", showlegend=False)
-    st.plotly_chart(fig, width='stretch')
+    section_title("Top 3 catégories de missions les plus impactantes pour les cadres sur les sites Européens (mai 2026)")
+    df_top3 = pd.DataFrame(q17_top3)
+    if df_top3.empty:
+        st.info("Aucune catégorie de mission disponible pour ce filtre.")
+    else:
+        fig = go.Figure(go.Bar(
+            x=df_top3["TYPE_MISSION"], y=df_top3["EMISSION"],
+            marker=dict(
+                color=[PALETTE["bleu_violet"], PALETTE["mauve"], PALETTE["rose_pastel"]][:len(df_top3)],
+                line=dict(color="rgba(255,255,255,0.2)", width=1),
+            ),
+            text=[f"{v:.2f} tCO₂e" for v in df_top3["EMISSION"]],
+            textposition="outside",
+            textfont=dict(family="JetBrains Mono", size=12, color="#f5f0ff"),
+        ))
+        apply_layout(fig, height=380)
+        fig.update_layout(yaxis_title="tCO₂e", xaxis_title="", showlegend=False)
+        st.plotly_chart(fig, width='stretch')
 
-    section_title("📋", "Détails des questions")
+    section_title("Détails des questions")
 
     question_card(10, "Quel a été le secteur d'activité qui a eu le plus d'impact concernant les missions et le matériel informatique sur l'ensemble des sites ?",
-                  Q10["secteur"], f"Impact total : {Q10['emission']:,.2f} tCO₂e")
+                  q10_value["secteur"], f"Impact total : {q10_value['emission']:,.2f} tCO₂e")
 
     question_card(11, "Quel site a eu le plus d'impact concernant les missions et le matériel informatique sur l'ensemble des sites ?",
-                  Q11["site"], f"Impact total : {Q11['emission']:,.2f} tCO₂e")
+                  q11_value["site"], f"Impact total : {q11_value['emission']:,.2f} tCO₂e")
 
     question_card(14, "Quel secteur d'activité a été le plus impactant pour les missions « conférences » entre mai et septembre 2026 ?",
-                  Q14["secteur"], f"Impact : {Q14['emission']:,.2f} tCO₂e")
+                  q14_value["secteur"], f"Impact : {q14_value['emission']:,.2f} tCO₂e")
 
     question_card(15, "Quel a été l'âge moyen des employés Ingénieurs Data qui sont partis en formations entre juillet et septembre 2026 ?",
-                  f"{Q15:.2f} ans", "Type de mission : Vocational Training")
+                  f"{q15_value:.2f} ans")
 
     # Q17 — top 3
     st.markdown(
@@ -994,7 +1013,7 @@ elif page == "🌍 Analyses transverses":
             <div class="question-num">QUESTION 17</div>
             <div class="question-text">Quelles ont été les trois catégories de missions les plus impactantes pour les cadres dans les sites Européens en mai 2026 ?</div>
             <div style="font-family: 'JetBrains Mono'; color: #f5f0ff; line-height: 2;">
-                {''.join([f'<div><span style="color:{PALETTE["orchidee"]};">{i+1}.</span> <span style="font-weight:600;">{d["TYPE_MISSION"]}</span> &nbsp;→&nbsp; <span style="color:#cd9be4;">{d["EMISSION"]:.2f} tCO₂e</span></div>' for i, d in enumerate(TOP3_CADRES_EUROPE_MAI)])}
+                {''.join([f'<div><span style="color:{PALETTE["orchidee"]};">{i+1}.</span> <span style="font-weight:600;">{d["TYPE_MISSION"]}</span> &nbsp;→&nbsp; <span style="color:#cd9be4;">{d["EMISSION"]:.2f} tCO₂e</span></div>' for i, d in enumerate(q17_top3)])}
             </div>
         </div>
         """,

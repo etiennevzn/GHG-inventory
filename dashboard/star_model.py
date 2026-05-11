@@ -216,14 +216,14 @@ def load_star_model():
         dim_materiel = pd.read_parquet(str(DATA_PATH / "dim_materiel"))
         dim_site = pd.read_parquet(str(DATA_PATH / "dim_site"))
         dim_date = pd.read_parquet(str(DATA_PATH / "dim_date"))
-        
+
         # Charger les tables de fait
         fait_mission = pd.read_parquet(str(DATA_PATH / "fait_mission"))
         fait_materiel = pd.read_parquet(str(DATA_PATH / "fait_materiel"))
-        
+
         # Charger les données de référence
         impact_materiel_ref = pd.read_parquet(str(DATA_PATH / "impact_materiel_ref"))
-        
+
         return {
             "dim_personnel": dim_personnel,
             "dim_mission": dim_mission,
@@ -238,7 +238,6 @@ def load_star_model():
         st.error(f"Fichiers Parquet non trouvés: {e}")
         st.info("Attention à bien exécuter les cellules d'export du notebook ETL.ipynb.")
         return None
-
 
 # FONCTIONS D'INTERROGATION DU MODÈLE
 
@@ -465,6 +464,22 @@ def query_materiel_summary(tables):
     return result
 
 
+def _merge_personnel_info(df, tables, extra_columns=None):
+    if df is None or df.empty or "ID_PERSONNEL" not in df.columns or tables is None:
+        return df
+
+    columns = ["ID_PERSONNEL"]
+    for column in extra_columns or []:
+        if column in tables["dim_personnel"].columns and column not in columns:
+            columns.append(column)
+
+    if len(columns) == 1:
+        return df
+
+    personnel = tables["dim_personnel"][columns].drop_duplicates(subset=["ID_PERSONNEL"])
+    return df.merge(personnel, on="ID_PERSONNEL", how="left")
+
+
 # FONCTIONS GÉNÉRIQUES PARAMÉTRABLES POUR CALCULER L'IMPACT
 
 def calculate_materiel_impact(
@@ -473,10 +488,11 @@ def calculate_materiel_impact(
     date_start=None, 
     date_end=None, 
     sites=None, 
-    fonctions_personnel=None
+    fonctions_personnel=None,
+    returnDf=False
 ):
     if tables is None:
-        return 0.0
+        return pd.DataFrame() if returnDf else 0.0
 
     try:
         result = tables["fait_materiel"].merge(
@@ -513,12 +529,18 @@ def calculate_materiel_impact(
         )
 
         if result.empty or "IMPACT" not in result.columns:
-            return 0.0
+            return result if returnDf else 0.0
+
+        if returnDf:
+            result = result.copy()
+            result["IMPACT_tCO2e"] = pd.to_numeric(result["IMPACT"], errors="coerce").fillna(0) / 1000
+            return result
+
         return float(pd.to_numeric(result["IMPACT"], errors="coerce").fillna(0).sum() / 1000)
 
     except Exception as e:
         print(f"Erreur lors du calcul d'impact matériel : {e}")
-        return 0.0
+        return pd.DataFrame() if returnDf else 0.0
 
 
 def calculate_mission_impact(
@@ -533,7 +555,7 @@ def calculate_mission_impact(
     returnDf = False
 ):
     if tables is None:
-        return 0.0
+        return pd.DataFrame() if returnDf else 0.0
 
     try:
         result = tables["dim_mission"].merge(
@@ -577,7 +599,7 @@ def calculate_mission_impact(
         return result
     except Exception as e:
         print(f"Erreur lors du calcul d'impact mission : {e}")
-        return 0.0
+        return pd.DataFrame() if returnDf else 0.0
 
 
 def calculate_total_impact(tables, date_start=None, date_end=None):
@@ -695,6 +717,153 @@ def query_q18(tables):
     top_missions = missions.sort_values("EMISSION_CALC", ascending=False).head(5).copy()
     top_missions["EMISSION"] = pd.to_numeric(top_missions["EMISSION_CALC"], errors="coerce").fillna(0)
     return top_missions[["ID_MISSION", "VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"]].to_dict(orient="records")
+
+def query_q10(tables):
+    """Q10: Secteur d'activité le plus impactant sur missions + matériel."""
+    if tables is None:
+        return {"secteur": "", "emission": 0.0}
+
+    missions = calculate_mission_impact(tables, returnDf=True)
+    missions = _merge_personnel_info(missions, tables, ["FONCTION_PERSONNEL"])
+    if missions.empty or "FONCTION_PERSONNEL" not in missions.columns:
+        mission_by_function = pd.DataFrame(columns=["FONCTION_PERSONNEL", "missions_tCO2e"])
+    else:
+        mission_by_function = (
+            missions.dropna(subset=["FONCTION_PERSONNEL"])
+            .groupby("FONCTION_PERSONNEL", as_index=False)["EMISSION_CALC"]
+            .sum()
+            .rename(columns={"EMISSION_CALC": "missions_tCO2e"})
+        )
+
+    materiel = calculate_materiel_impact(tables, returnDf=True)
+    materiel = _merge_personnel_info(materiel, tables, ["FONCTION_PERSONNEL"])
+    if materiel.empty:
+        materiel_by_function = pd.DataFrame(columns=["FONCTION_PERSONNEL", "materiel_tCO2e"])
+    else:
+        if "IMPACT_tCO2e" not in materiel.columns and "IMPACT" in materiel.columns:
+            materiel["IMPACT_tCO2e"] = pd.to_numeric(materiel["IMPACT"], errors="coerce").fillna(0) / 1000
+        materiel_by_function = (
+            materiel.dropna(subset=["FONCTION_PERSONNEL"])
+            .groupby("FONCTION_PERSONNEL", as_index=False)["IMPACT_tCO2e"]
+            .sum()
+            .rename(columns={"IMPACT_tCO2e": "materiel_tCO2e"})
+        )
+
+    total_by_function = mission_by_function.merge(materiel_by_function, on="FONCTION_PERSONNEL", how="outer").fillna(0)
+    if total_by_function.empty:
+        return {"secteur": "", "emission": 0.0}
+
+    total_by_function["TOT_IMPACT"] = total_by_function["missions_tCO2e"] + total_by_function["materiel_tCO2e"]
+    top_function = total_by_function.sort_values("TOT_IMPACT", ascending=False).head(1)
+    if top_function.empty:
+        return {"secteur": "", "emission": 0.0}
+
+    row = top_function.iloc[0]
+    return {"secteur": str(row["FONCTION_PERSONNEL"]), "emission": float(row["TOT_IMPACT"])}
+
+
+def query_q11(tables):
+    """Q11: Site le plus impactant sur missions + matériel."""
+    df_site = calculate_impact_per_site(tables)
+    if df_site.empty or "ID_SITE" not in df_site.columns:
+        return {"site": "", "emission": 0.0}
+
+    top_site = df_site.sort_values("TOT_IMPACT", ascending=False).head(1)
+    if top_site.empty:
+        return {"site": "", "emission": 0.0}
+
+    row = top_site.iloc[0]
+    return {"site": str(row["ID_SITE"]), "emission": float(row["TOT_IMPACT"])}
+
+
+def query_q14(tables):
+    """Q14: Secteur le plus impactant pour les missions conférences entre mai et septembre 2026."""
+    if tables is None:
+        return {"secteur": "", "emission": 0.0}
+
+    missions = calculate_mission_impact(
+        tables,
+        mission_types=["Conference"],
+        date_start="2026-05-01",
+        date_end="2026-09-30",
+        returnDf=True,
+    )
+    missions = _merge_personnel_info(missions, tables, ["FONCTION_PERSONNEL"])
+    if missions.empty or "FONCTION_PERSONNEL" not in missions.columns:
+        return {"secteur": "", "emission": 0.0}
+
+    top_function = (
+        missions.dropna(subset=["FONCTION_PERSONNEL"])
+        .groupby("FONCTION_PERSONNEL", as_index=False)["EMISSION_CALC"]
+        .sum()
+        .sort_values("EMISSION_CALC", ascending=False)
+        .head(1)
+    )
+    if top_function.empty:
+        return {"secteur": "", "emission": 0.0}
+
+    row = top_function.iloc[0]
+    return {"secteur": str(row["FONCTION_PERSONNEL"]), "emission": float(row["EMISSION_CALC"])}
+
+
+def query_q15(tables):
+    """Q15: Âge moyen des ingénieurs Data partis en formations entre juillet et septembre 2026."""
+    if tables is None:
+        return 0.0
+
+    missions = calculate_mission_impact(
+        tables,
+        mission_types=["Vocational Training"],
+        date_start="2026-07-01",
+        date_end="2026-09-30",
+        returnDf=True,
+    )
+    missions = _merge_personnel_info(missions, tables, ["FONCTION_PERSONNEL", "AGE"])
+    if missions.empty or "FONCTION_PERSONNEL" not in missions.columns:
+        return 0.0
+
+    data_engineers = missions[missions["FONCTION_PERSONNEL"] == "Data Engineer"]
+    if data_engineers.empty:
+        return 0.0
+
+    ages = pd.to_numeric(data_engineers["AGE"], errors="coerce").dropna()
+    if ages.empty:
+        return 0.0
+    return float(ages.mean())
+
+
+def query_q17(tables):
+    """Q17: Trois catégories de missions les plus impactantes pour les cadres en Europe en mai 2026."""
+    if tables is None:
+        return []
+
+    missions = calculate_mission_impact(
+        tables,
+        date_start="2026-05-01",
+        date_end="2026-05-31",
+        id_sites=EUROPE_SITES,
+        returnDf=True,
+    )
+    missions = _merge_personnel_info(missions, tables, ["FONCTION_PERSONNEL"])
+    if missions.empty or "FONCTION_PERSONNEL" not in missions.columns:
+        return []
+
+    cadres = missions[missions["FONCTION_PERSONNEL"] == "Business Executive"]
+    if cadres.empty or "TYPE_MISSION" not in cadres.columns:
+        return []
+
+    top_categories = (
+        cadres.groupby("TYPE_MISSION", as_index=False)["EMISSION_CALC"]
+        .sum()
+        .sort_values("EMISSION_CALC", ascending=False)
+        .head(3)
+    )
+    if top_categories.empty:
+        return []
+
+    top_categories = top_categories.rename(columns={"EMISSION_CALC": "EMISSION"})
+    return top_categories.to_dict(orient="records")
+
 
 def calculate_impact_per_site(tables):
     if tables is None:

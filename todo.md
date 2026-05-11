@@ -1,7 +1,7 @@
 [ ] Revoir la fonction _missions_with_emissions du dashboard
 [ ] Continuer page missions et déplacements
-[ ] Est-ce que le tableau de bord est censé présenter les réponses aux questions de manière statique ou dynamique ? est-ce que c'est grave si ça met du temps à charger ?
 [ ] A quel point on dit IA gen ? (template streamlit, conversion fonctions spark vers pandas, css...)
+[ ] Enlever les c for c in next... dan star_model
 [ ] Verif fonction calcul des distances pour le dashboard (uniformiser la seed)
 [ ] Corriger les left join en inner calcul dashboard
 [ ] Ajouter un cache pour les calculs ?
@@ -14,7 +14,7 @@
 [X] Modifier les fonctions de traitement pour mettre la boucle sur les dates à l'extérieur
 [ ] Supprimer les tables de dimension inutiles + update UML
 [ ] Séparer les fichiers ? (mettre certaines fonctions dans un fichier utils par exemple)
-[ ] Est-ce que la fonctions d'extraction du personnel on sort la boucle de la fonction ?
+[X] Est-ce que la fonctions d'extraction du personnel on sort la boucle de la fonction ?
 [X] Priorité : voir comment nettoyer les NaN dans les données de matériel 
 [X] Architecture Data Warehouse 
 [X] ETL journaliser
@@ -23,5 +23,12 @@
 [X] Tables de dimension
 [X] Tables de faits
 [X] Pour les trajets dans la même ville, trouver une solution pour la distance
+
+
+
+
+Questions : 
+[ ] Est-ce que le tableau de bord est censé présenter les réponses aux questions de manière statique ou dynamique ? est-ce que c'est grave si ça met du temps à charger ?
+[ ] Question 10 : 2 réponses une pour mission une pour matériel ou somme des 2 ?
 
 
