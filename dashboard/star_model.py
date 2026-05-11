@@ -93,15 +93,6 @@ def _safe_float(value, default=0.0):
         return default
 
 
-def _haversine_km(lat1, lon1, lat2, lon2):
-    earth_radius_km = 6371.0
-    dlat = radians(lat2 - lat1)
-    dlon = radians(lon2 - lon1)
-    a = sin(dlat / 2) ** 2 + cos(radians(lat1)) * cos(radians(lat2)) * sin(dlon / 2) ** 2
-    c = 2 * atan2(sqrt(a), sqrt(1 - a))
-    return earth_radius_km * c
-
-
 def _intra_city_distance_km(ville, pays):
     # Same spirit as ETL: estimate intra-city trips with a normal distribution.
     # We use a deterministic seed per city-country pair for reproducible dashboard values.
@@ -120,7 +111,6 @@ def _get_coords(ville, pays):
     if coords:
         return coords
 
-    # ETL-like fallback: geocode city-country if not in static dictionary.
     try:
         location = _GEOCODER.geocode(f"{vd}, {pdp}")
         if location is not None:
@@ -336,7 +326,7 @@ def query_q5(tables):
     result_df = joined.merge(
         tables["impact_materiel_ref"],
         on=["TYPE", "MODELE"],
-        how="left"
+        how="inner"
     )
     
     # Calculer impact total (kg en tCO2e)
@@ -383,7 +373,7 @@ def query_q6(tables):
     result_df = joined.merge(
         tables["impact_materiel_ref"],
         on=["TYPE", "MODELE"],
-        how="left"
+        how="inner"
     )
     
     if result_df.empty or "IMPACT" not in result_df.columns:
@@ -428,7 +418,7 @@ def query_q7(tables):
     result_df = joined.merge(
         tables["impact_materiel_ref"],
         on=["TYPE", "MODELE"],
-        how="left"
+        how="inner"
     )
     
     if result_df.empty or "IMPACT" not in result_df.columns:
@@ -506,7 +496,7 @@ def calculate_materiel_impact(
             result = result.merge(
                 tables["dim_personnel"][["ID_PERSONNEL", "ID_SITE", "FONCTION_PERSONNEL"]],
                 on="ID_PERSONNEL",
-                how="left",
+                how="inner",
             )
             if sites:
                 result = result[result["ID_SITE"].isin(sites)]
@@ -516,7 +506,7 @@ def calculate_materiel_impact(
         result = result.merge(
             tables["impact_materiel_ref"][["TYPE", "MODELE", "IMPACT"]],
             on=["TYPE", "MODELE"],
-            how="left",
+            how="inner",
         )
 
         if result.empty or "IMPACT" not in result.columns:
@@ -639,7 +629,7 @@ def calculate_impact_per_site(tables):
         mat = mat.merge(
             tables["impact_materiel_ref"][["TYPE", "MODELE", "IMPACT"]], 
             on=["TYPE", "MODELE"], 
-            how="left",
+            how="inner",
             suffixes=("_mat", "_impact")
         )
         
@@ -650,7 +640,7 @@ def calculate_impact_per_site(tables):
             mat = mat.merge(
                 tables["dim_personnel"][["ID_PERSONNEL", "ID_SITE"]], 
                 on="ID_PERSONNEL", 
-                how="left",
+                how="inner",
             )
             id_site_col = "ID_SITE"
 
@@ -766,7 +756,7 @@ def calculate_materiel_impact_by_category(tables, date_start=None, date_end=None
         ).merge(
             tables["impact_materiel_ref"][["TYPE", "MODELE", "IMPACT"]],
             on=["TYPE", "MODELE"],
-            how="left",
+            how="inner",
         )
 
         if date_start or date_end:
@@ -830,11 +820,11 @@ def calculate_materiel_impact_by_site(tables, date_start=None, date_end=None):
         ).merge(
             tables["dim_personnel"][["ID_PERSONNEL", "ID_SITE"]],
             on="ID_PERSONNEL",
-            how="left",
+            how="inner",
         ).merge(
             tables["impact_materiel_ref"][["TYPE", "MODELE", "IMPACT"]],
             on=["TYPE", "MODELE"],
-            how="left",
+            how="inner",
         )
 
         if date_start or date_end:

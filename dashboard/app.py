@@ -524,7 +524,7 @@ elif page == "👥 Effectifs":
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    section_title("📋", "Détails des questions")
+    section_title("Détails des questions")
 
     question_card(1, "Combien de cadres travaillent sur le site de Paris ?",
                   f"{q1_value:,} cadres", "Site de Paris uniquement")
@@ -558,18 +558,18 @@ elif page == "💻 Matériel informatique":
 
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("PC fixes achetés", f"{q4_value:,} Juin–Sep 2026")
+        st.metric("PC fixes achetés", f"{q4_value:,} \n\nJuin–Sep 2026")
     with c2:
-        st.metric("Impact PC fixes s/écran", f"{q5_value:,.1f} tCO₂e Mai–Oct 2026")
+        st.metric("Impact PC fixes\n\nsans écran", f"{q5_value:,.1f} tCO₂e \n\nMai–Oct 2026")
     with c3:
-        st.metric("Impact PC portables", f"{q6_value:,.1f} tCO₂e Ing. Data · LON+NY")
+        st.metric("Impact PC portables\n\nIng. Data · LON et NY\n\n", f"{q6_value:,.1f} tCO₂e\n\nMai–Oct 2026")
     with c4:
-        st.metric("Impact écrans cadres", f"{q7_value:,.1f} tCO₂e Juil–Sep 2026")
+        st.metric("Impact écrans cadres", f"{q7_value:,.1f} tCO₂e \n\nJuil–Sep 2026")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Comparaison visuelle des impacts
-    section_title("📊", "Comparaison des impacts par catégorie")
+    section_title("Comparaison des impacts par catégorie")
     cat_data = pd.DataFrame({
         "Catégorie": [
             "PC fixes sans écran<br>(mai–oct, tous sites)",
@@ -593,7 +593,7 @@ elif page == "💻 Matériel informatique":
     fig.update_layout(yaxis_title="tCO₂e", xaxis_title="", showlegend=False)
     st.plotly_chart(fig, width='stretch')
 
-    section_title("📋", "Détails des questions")
+    section_title("Détails des questions")
 
     question_card(4, "Combien de PC fixes ont été achetés par l'organisation entre juin et septembre 2026 ?",
                   f"{q4_value:,} PC fixes", "PC fixe sans écran + PC fixe tout-en-un")
@@ -605,7 +605,7 @@ elif page == "💻 Matériel informatique":
                   f"{q6_value:.3f} tCO₂e")
 
     question_card(7, "Quel a été l'impact carbone des écrans achetés par les cadres entre juillet et septembre 2026 sur tous les sites ?",
-                  f"{q7_value:.1f} tCO₂e")
+                  f"{q7_value:.2f} tCO₂e")
 
 
 # ================================================================

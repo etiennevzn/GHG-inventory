@@ -2,6 +2,8 @@
 [ ] A quel point on dit IA gen ? (template streamlit, conversion fonctions spark vers pandas, css...)
 [ ] Verif fonction calcul des distances pour le dashboard
 [ ] Corriger les left join en inner calcul dashboard
+[ ] Ajouter un cache pour les calculs ?
+[ ] Revoir figure dashboard matériel (vraiment utile ? en mettre une autre ?)
 [ ] Tableau de bord
 [ ] Slides
 [ ] Repasser sur toutes les questions et vérifier que la logique est bonne 
