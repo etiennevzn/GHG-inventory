@@ -27,6 +27,9 @@ COEFFS_DISTANCE = {
     "Transports en commun": 1.5,
 }
 
+EUROPE_SITES = ["PARIS", "BERLIN", "LONDON"]
+ALL_ORG_SITES = ["BERLIN", "LONDON", "LOSANGELES", "NEWYORK", "PARIS", "SHANGHAI"]
+
 INTRA_CITY_MEAN_KM = 8.0
 INTRA_CITY_STD_KM = 3.0
 _GEOCODER = Nominatim(user_agent="bges_dashboard", timeout=5)
@@ -525,7 +528,8 @@ def calculate_mission_impact(
     date_end=None, 
     sites_depart=None, 
     sites_destination=None, 
-    transports=None
+    transports=None,
+    id_sites=None
 ):
     if tables is None:
         return 0.0
@@ -547,15 +551,14 @@ def calculate_mission_impact(
             if date_end:
                 result = result[result["ID_DATE_MISSION"] <= pd.to_datetime(date_end)]
 
-        if sites_depart:
-            if "ID_SITE" in result.columns:
-                result = result[result["ID_SITE"].isin(sites_depart)]
-            elif "VILLE_DEPART" in result.columns:
-                result = result[result["VILLE_DEPART"].isin(sites_depart)]
+        if sites_depart and "VILLE_DEPART" in result.columns:
+            result = result[result["VILLE_DEPART"].isin(sites_depart)]
         if sites_destination and "VILLE_DESTINATION" in result.columns:
             result = result[result["VILLE_DESTINATION"].isin(sites_destination)]
         if transports:
             result = result[result["TRANSPORT"].isin(transports)]
+        if id_sites and "ID_SITE" in result.columns:
+            result = result[result["ID_SITE"].isin(id_sites)]
 
         if result.empty:
             return 0.0
@@ -586,6 +589,180 @@ def calculate_total_impact(tables, date_start=None, date_end=None):
     except Exception as e:
         print(f"Erreur lors du calcul d'impact total : {e}")
         return 0.0, 0.0, 0.0
+
+
+def _missions_with_emissions(
+    tables,
+    date_start=None,
+    date_end=None,
+    mission_types=None,
+    sites_depart=None,
+    sites_destination=None,
+    transports=None,
+):
+    if tables is None:
+        return pd.DataFrame()
+
+    try:
+        result = tables["dim_mission"].merge(
+            tables["fait_mission"],
+            on="ID_MISSION",
+            how="inner",
+        ).copy()
+
+        if mission_types:
+            result = result[result["TYPE_MISSION"].isin(mission_types)]
+
+        if date_start or date_end:
+            result["ID_DATE_MISSION"] = pd.to_datetime(result["ID_DATE_MISSION"], errors="coerce")
+            if date_start:
+                result = result[result["ID_DATE_MISSION"] >= pd.to_datetime(date_start)]
+            if date_end:
+                result = result[result["ID_DATE_MISSION"] <= pd.to_datetime(date_end)]
+
+        if sites_depart:
+            site_depart_cols = ["ID_SITE", "SITE_DEPART", "ID_SITE_DEPART", "VILLE_DEPART"]
+            site_depart_col = next((col for col in site_depart_cols if col in result.columns), None)
+            if site_depart_col is not None:
+                result = result[result[site_depart_col].isin(sites_depart)]
+
+        if sites_destination:
+            site_destination_cols = [
+                "ID_SITE_DESTINATION",
+                "ID_SITE_ARRIVEE",
+                "SITE_DESTINATION",
+                "VILLE_DESTINATION",
+                "VILLE_ARRIVEE",
+            ]
+            site_destination_col = next((col for col in site_destination_cols if col in result.columns), None)
+            if site_destination_col is not None:
+                result = result[result[site_destination_col].isin(sites_destination)]
+
+        if transports:
+            result = result[result["TRANSPORT"].isin(transports)]
+
+        if result.empty:
+            return result
+
+        fe_transports, fe_vehicules = load_emission_factors()
+        emission_candidates = ["EMISSION_tCO2e", "Emission_tCO2e", "EMISSION", "EMISSION_CALC"]
+        emission_col = next((c for c in emission_candidates if c in result.columns), None)
+
+        if emission_col is not None:
+            result["EMISSION_CALC"] = pd.to_numeric(result[emission_col], errors="coerce").fillna(0)
+        else:
+            result["EMISSION_CALC"] = result.apply(
+                lambda row: _compute_mission_emission_tco2e(row, fe_transports, fe_vehicules),
+                axis=1,
+            )
+
+        result["ID_DATE_MISSION"] = pd.to_datetime(result["ID_DATE_MISSION"], errors="coerce")
+        return result
+
+    except Exception as e:
+        print(f"Erreur lors de la préparation des missions : {e}")
+        return pd.DataFrame()
+
+
+def query_q8(tables):
+    """Q8: Impact carbone des missions sur les sites Européens entre mai et octobre 2026."""
+    return calculate_mission_impact(
+        tables,
+        date_start="2026-05-01",
+        date_end="2026-10-31",
+        id_sites=EUROPE_SITES,
+    )
+
+
+def query_q9(tables):
+    """Q9: Top 5 jours les plus impactants concernant les missions en avion pour les sites Européens."""
+    missions = _missions_with_emissions(
+        tables,
+        date_start="2026-05-01",
+        date_end="2026-10-31",
+        sites_depart=EUROPE_SITES,
+        transports=["Avion"],
+    )
+    if missions.empty:
+        return []
+
+    top_days = (
+        missions.assign(Date=missions["ID_DATE_MISSION"].dt.strftime("%Y-%m-%d"))
+        .groupby("Date", as_index=False)["EMISSION_CALC"]
+        .sum()
+        .sort_values("EMISSION_CALC", ascending=False)
+        .head(5)
+    )
+    top_days.columns = ["Date", "Emission_tCO2e"]
+    return top_days.to_dict(orient="records")
+
+
+def query_q12(tables):
+    """Q12: Impact carbone des missions inter-sites durant le mois de septembre 2026."""
+    return calculate_mission_impact(
+        tables,
+        date_start="2026-09-01",
+        date_end="2026-09-30",
+        sites_depart=["Los Angeles", "New-York", "Paris", "London", "Shanghai", "Berlin"],
+        sites_destination=["Los Angeles", "New-York", "Paris", "London", "Shanghai", "Berlin"]
+    )
+
+
+def query_q13(tables):
+    """Q13: Impact carbone des séminaires en juillet 2026 pour les employés de Los Angeles."""
+    return calculate_mission_impact(
+        tables,
+        mission_types=["Conference"],
+        date_start="2026-07-01",
+        date_end="2026-07-31",
+        id_sites=["LOSANGELES"],
+    )
+
+
+def query_q16(tables):
+    """Q16: Destination la plus impactante entre mai et octobre 2026."""
+    missions = _missions_with_emissions(
+        tables,
+        date_start="2026-05-01",
+        date_end="2026-10-31",
+    )
+    if missions.empty:
+        return {"destination": "", "emission": 0.0}
+
+    destination_col = next(
+        (col for col in ["VILLE_DESTINATION", "ID_SITE_DESTINATION", "VILLE_ARRIVEE", "SITE_DESTINATION"] if col in missions.columns),
+        None,
+    )
+    if destination_col is None:
+        return {"destination": "", "emission": 0.0}
+
+    top_destination = (
+        missions.groupby(destination_col, as_index=False)["EMISSION_CALC"].sum()
+        .sort_values("EMISSION_CALC", ascending=False)
+        .head(1)
+    )
+    if top_destination.empty:
+        return {"destination": "", "emission": 0.0}
+
+    row = top_destination.iloc[0]
+    return {"destination": str(row[destination_col]), "emission": float(row["EMISSION_CALC"])}
+
+
+def query_q18(tables):
+    """Q18: 5 missions les plus impactantes sur le site de Paris."""
+    missions = _missions_with_emissions(
+        tables,
+        sites_depart=["PARIS"],
+    )
+    if missions.empty:
+        return []
+
+    if not {"VILLE_DEPART", "VILLE_DESTINATION"}.issubset(missions.columns):
+        return []
+
+    top_missions = missions.sort_values("EMISSION_CALC", ascending=False).head(5).copy()
+    top_missions["EMISSION"] = pd.to_numeric(top_missions["EMISSION_CALC"], errors="coerce").fillna(0)
+    return top_missions[["VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"]].to_dict(orient="records")
 
 def calculate_impact_per_site(tables):
     if tables is None:

@@ -13,7 +13,7 @@
     2026-10-04      
 10. Data Engineer	
 11. Los Angeles
-12. 273.81 tCO2e
+12. 944.77 tCO2e
 13. 341.47 tCO2e
 14. Data Engineer
 15. Age moyen : 59.34

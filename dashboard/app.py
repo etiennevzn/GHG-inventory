@@ -12,14 +12,15 @@ from plotly.subplots import make_subplots
 from data import (
     PALETTE, PALETTE_LIST, GRADIENT,
     SITES,
-    Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, Q16, Q17,
+    Q10, Q11, Q14, Q15, Q17,
     IMPACT_TOTAL_SECTEUR, IMPACT_TOTAL_SITE,
-    TOP3_CADRES_EUROPE_MAI, TOP_MISSIONS_PARIS,
+    TOP3_CADRES_EUROPE_MAI,
     EMISSIONS_MENSUEL_TRANSPORT_SITE, EMISSIONS_MENSUEL_GLOBAL,
 )
 from star_model import (
     init_star_model,
     query_q1, query_q2, query_q3, query_q4, query_q5, query_q6, query_q7,
+    query_q8, query_q9, query_q12, query_q13, query_q16, query_q18,
     calculate_total_impact,
     calculate_impact_per_site,
     calculate_monthly_impact,
@@ -573,7 +574,7 @@ elif page == "💻 Matériel informatique":
     cat_data = pd.DataFrame({
         "Catégorie": [
             "PC fixes sans écran<br>(mai–oct, tous sites)",
-            "PC portables<br>(ing. Data, LON+NY)",
+            "PC portables<br>(mai-oct, ing. Data, LON+NY)",
             "Écrans cadres<br>(juil–sep, tous sites)",
         ],
         "Impact": [q5_value, q6_value, q7_value],
@@ -616,21 +617,29 @@ elif page == "✈️ Missions & déplacements":
         f"""
         <div class="hero-banner">
             <div class="hero-title">Missions & déplacements</div>
-            <div class="hero-subtitle">Analyse fine des déplacements professionnels</div>
+            <div class="hero-subtitle">Impact carbone des missions</div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
+    with st.spinner("Calcul des indicateurs missions en cours..."):
+        q8_value = query_q8(tables)
+        q9_top5 = query_q9(tables)
+        q12_value = query_q12(tables)
+        q13_value = query_q13(tables)
+        q16_value = query_q16(tables)
+        q18_top5 = query_q18(tables)
+
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        st.metric("Missions Europe", f"{Q8:,.0f} tCO₂e Mai–Oct 2026")
+        st.metric("Impact missions Europe", f"{q8_value:,.0f} tCO₂e\n\nMai–Oct 2026")
     with c2:
-        st.metric("Inter-sites Sept.", f"{Q12:,.0f} tCO₂e Septembre 2026")
+        st.metric("Impact missions\n\ninter-sites", f"{q12_value:,.0f} tCO₂e\n\nSept. 2026")
     with c3:
-        st.metric("Séminaires LA", f"{Q13:,.0f} tCO₂e Juillet 2026")
+        st.metric("Impact séminaires LA", f"{q13_value:,.0f} tCO₂e\n\nJuillet 2026")
     with c4:
-        st.metric("Top destination", f"{Q16['destination']} {Q16['emission']:,.0f} tCO₂e")
+        st.metric("Destination la plus\n\nimpactante", f"{q16_value['destination']}\n\n{q16_value['emission']:,.0f} tCO₂e")
 
     st.markdown("<br>", unsafe_allow_html=True)
 
@@ -639,7 +648,7 @@ elif page == "✈️ Missions & déplacements":
 
     with col_left:
         section_title("📅", "Top 5 jours · missions avion (Europe)")
-        df_top5 = pd.DataFrame(Q9)
+        df_top5 = pd.DataFrame(q9_top5, columns=["Date", "Emission_tCO2e"])
         fig = go.Figure(go.Bar(
             y=df_top5["Date"].astype(str),
             x=df_top5["Emission_tCO2e"],
@@ -660,7 +669,7 @@ elif page == "✈️ Missions & déplacements":
 
     with col_right:
         section_title("🏆", "Top 5 missions · site Paris")
-        df_top_paris = pd.DataFrame(TOP_MISSIONS_PARIS).head(5)
+        df_top_paris = pd.DataFrame(q18_top5, columns=["VILLE_DEPART", "VILLE_DESTINATION", "TRANSPORT", "TYPE_MISSION", "EMISSION"])
         df_top_paris["LABEL"] = df_top_paris["VILLE_DEPART"] + " → " + df_top_paris["VILLE_DESTINATION"]
         fig = go.Figure(go.Bar(
             y=df_top_paris["LABEL"],
@@ -685,7 +694,7 @@ elif page == "✈️ Missions & déplacements":
     section_title("📋", "Détails des questions")
 
     question_card(8, "Quel a été l'impact carbone des missions sur les sites Européens entre mai et octobre 2026 ?",
-                  f"{Q8:,.2f} tCO₂e", "Sites de Paris, Berlin et Londres")
+                  f"{q8_value:,.2f} tCO₂e", "Sites de Paris, Berlin et Londres")
 
     # Question 9 — top 5 jours
     st.markdown(
@@ -694,7 +703,7 @@ elif page == "✈️ Missions & déplacements":
             <div class="question-num">QUESTION 9</div>
             <div class="question-text">Quels ont été les 5 jours les plus impactants concernant les missions en avion pour les sites Européens de l'organisation ?</div>
             <div style="font-family: 'JetBrains Mono'; color: #f5f0ff; line-height: 2;">
-                {''.join([f'<div><span style="color:{PALETTE["orchidee"]};">{i+1}.</span> <span style="color:#cd9be4;">{d["Date"]}</span> &nbsp;→&nbsp; <span style="font-weight:600;">{d["Emission_tCO2e"]:.2f} tCO₂e</span></div>' for i, d in enumerate(Q9)])}
+                {''.join([f'<div><span style="color:{PALETTE["orchidee"]};">{i+1}.</span> <span style="color:#cd9be4;">{d["Date"]}</span> &nbsp;→&nbsp; <span style="font-weight:600;">{d["Emission_tCO2e"]:.2f} tCO₂e</span></div>' for i, d in enumerate(q9_top5)])}
             </div>
         </div>
         """,
@@ -702,13 +711,13 @@ elif page == "✈️ Missions & déplacements":
     )
 
     question_card(12, "Quel a été l'impact carbone des missions reliant chaque site (départ et arrivée = sites de l'organisation) durant le mois de septembre 2026 ?",
-                  f"{Q12:.2f} tCO₂e", "Septembre 2026 · trajets inter-sites")
+                  f"{q12_value:.2f} tCO₂e", "Septembre 2026 · trajets inter-sites")
 
     question_card(13, "Quel a été l'impact carbone des séminaires en juillet 2026 pour les employés de Los Angeles ?",
-                  f"{Q13:.2f} tCO₂e", "Type de mission : Conference")
+                  f"{q13_value:.2f} tCO₂e", "Type de mission : Conference")
 
     question_card(16, "Quelle destination a été la plus impactante (en cumul) entre mai et octobre 2026 ?",
-                  Q16["destination"], f"Cumul d'émissions : {Q16['emission']:.2f} tCO₂e")
+                  q16_value["destination"], f"Cumul d'émissions : {q16_value['emission']:.2f} tCO₂e")
 
     question_card(18, "Quelles ont été les 5 missions les plus impactantes sur le site de Paris ?",
                   "Voir graphique ci-dessus", "Trajets dominants : Paris ↔ Wellington (avion)")
