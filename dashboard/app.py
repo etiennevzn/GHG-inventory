@@ -29,7 +29,6 @@ from star_model import (
 # ================================================================
 st.set_page_config(
     page_title="Projet BGES Dashboard — NF26",
-    page_icon="🌍",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -342,7 +341,7 @@ def section_title(title, icon=""):
 
 
 # ================================================================
-# SIDEBAR — NAVIGATION
+# SIDEBAR DE NAVIGATION
 # ================================================================
 with st.sidebar:
     st.markdown(
@@ -378,7 +377,7 @@ with st.sidebar:
         <div style="font-family: 'JetBrains Mono'; font-size: 0.7rem; color: #6b6b80; line-height: 1.6;">
             <div style="margin-bottom: 8px;"><strong style="color: {PALETTE['bleu_violet']};">PÉRIODE</strong><br>Avril → Novembre 2026</div>
             <div style="margin-bottom: 8px;"><strong style="color: {PALETTE['bleu_violet']};">SITES</strong><br>Paris, Berlin, Londres,<br>NY, LA, Shanghai</div>
-            <div><strong style="color: {PALETTE['bleu_violet']};">UNITÉ</strong><br>tCO₂e (équivalent CO₂)</div>
+            <div><strong style="color: {PALETTE['bleu_violet']};">UNITÉ</strong><br>tCO₂e (Tonnes équivalent CO₂)</div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -427,18 +426,18 @@ if page == "🏠 Accueil":
 
     with col_left:
         section_title("Impact carbone par site")
-        df_site = pd.DataFrame(IMPACT_TOTAL_SITE).sort_values("TOT_IMPACT", ascending=True)
+        df_site = df_site_impacts.sort_values("TOT_IMPACT", ascending=True)
         fig = go.Figure()
         fig.add_trace(go.Bar(
             y=df_site["ID_SITE"],
-            x=df_site["Emission_tCO2e"],
+            x=df_site["missions_tCO2e"],
             name="Missions",
             orientation="h",
             marker=dict(color=PALETTE["bleu_violet"], line=dict(color=PALETTE["bleu_nuit"], width=1)),
         ))
         fig.add_trace(go.Bar(
             y=df_site["ID_SITE"],
-            x=df_site["sum(IMPACT)"],
+            x=df_site["materiel_tCO2e"],
             name="Matériel info.",
             orientation="h",
             marker=dict(color=PALETTE["rose_pastel"], line=dict(color=PALETTE["orchidee"], width=1)),
