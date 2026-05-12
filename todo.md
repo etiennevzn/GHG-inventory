@@ -1,4 +1,4 @@
-[ ] ETL : sauvegarder la distance entre les villes
+[X] ETL : sauvegarder la distance entre les villes
 [ ] ETL : revoir fonction imputation du type de matériel
 [ ] Revoir la fonction _missions_with_emissions du dashboard
 [ ] Continuer page missions et déplacements
