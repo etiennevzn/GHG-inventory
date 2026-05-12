@@ -72,18 +72,30 @@ fma = data['fait_materiel']
 
 st.sidebar.header("Filtres")
 
+# Callback pour réinitialiser les dates
+def reset_dates():
+    st.session_state.date_input = (date(2026, 4, 28), date(2026, 11, 15))
+
 # Filtres de dates
 min_date = dd['ID_DATE'].min()
 max_date = dd['ID_DATE'].max()
 min_value = min_date if isinstance(min_date, date) else min_date.date()
 max_value = max_date if isinstance(max_date, date) else max_date.date()
 
-date_range = st.sidebar.date_input(
-    "Plage de dates",
-    value=(date(2026, 4, 28), date(2026, 11, 15)),
-    min_value=min_value,
-    max_value=max_value
-)
+col_date, col_reset = st.sidebar.columns([4, 1])
+with col_date:
+    date_range = st.date_input(
+        "Plage de dates",
+        value=(date(2026, 4, 28), date(2026, 11, 15)),
+        min_value=min_value,
+        max_value=max_value,
+        key='date_input'
+    )
+
+with col_reset:
+    st.write("")  # Espace vide pour l'alignement
+    st.write("")
+    st.button("🗘", on_click=reset_dates, help="Réinitialiser à la plage par défaut")
 
 # Filtres par site
 sites = sorted(ds['ID_SITE'].unique())
@@ -142,8 +154,8 @@ fma_joined = fma_joined[fma_joined['ID_SITE'].isin(selected_sites)]
 # ============================================================================
 
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "Aperçu",
-    "Personnel et Sites",
+    "Aperçu global",
+    "Personnel",
     "Matériel Informatique",
     "Missions",
     "Questions"
@@ -209,7 +221,6 @@ with tab1:
         line=dict(color='red', width=3)
     ))
     fig.update_layout(
-        title="Impact Carbone Mensuel (Missions + Matériel)",
         barmode='stack',
         xaxis_title="Mois",
         yaxis_title="Impact (tCO₂e)",
@@ -390,31 +401,37 @@ with tab1:
 # ============================================================================
 
 with tab2:
-    st.header("Personnel et Sites")
+    st.header("Personnel")
     
     col1, col2 = st.columns(2)
     
     with col1:
         st.subheader("Distribution par Site")
         site_dist = dp_filtered['ID_SITE'].value_counts()
-        fig = px.pie(
-            values=site_dist.values,
-            names=site_dist.index,
-            title="Nombre d'employés par site"
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        if len(site_dist) > 0:
+            fig = px.pie(
+                values=site_dist.values,
+                names=site_dist.index,
+                title="Nombre d'employés par site"
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aucune donnée à afficher.")
     
     with col2:
         st.subheader("Distribution par Fonction")
-        fonction_dist = dp_filtered['FONCTION_PERSONNEL'].value_counts()
-        fig = px.bar(
-            y=fonction_dist.index,
-            x=fonction_dist.values,
-            title="Nombre d'employés par fonction",
-            labels={'x': 'Nombre', 'y': 'Fonction'},
-            orientation='h'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        fonction_dist = dp_filtered['FONCTION_PERSONNEL'].value_counts().sort_values(ascending=True)
+        if len(fonction_dist) > 0:
+            fig = px.bar(
+                y=fonction_dist.index,
+                x=fonction_dist.values,
+                title="Nombre d'employés par fonction",
+                labels={'x': 'Nombre', 'y': 'Fonction'},
+                orientation='h'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aucune donnée à afficher.")
     
     st.subheader("Détail du Personnel")
     st.dataframe(dp_filtered, use_container_width=True)
@@ -430,37 +447,46 @@ with tab3:
     
     with col1:
         st.subheader("Impact par Type de Matériel")
-        impact_by_type = fma_joined.groupby('TYPE')['IMPACT'].sum().sort_values(ascending=False)
-        fig = px.bar(
-            y=impact_by_type.index,
-            x=impact_by_type.values,
-            title="Impact Carbone par Type de Matériel",
-            labels={'x': 'Impact (tCO₂e)', 'y': 'Type'},
-            orientation='h'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        impact_by_type = fma_joined.groupby('TYPE')['IMPACT'].sum().sort_values(ascending=True)
+        if len(impact_by_type) > 0:
+            fig = px.bar(
+                y=impact_by_type.index,
+                x=impact_by_type.values,
+                title="Impact Carbone par Type de Matériel",
+                labels={'x': 'Impact (tCO₂2e)', 'y': 'Type'},
+                orientation='h'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aucune donnée à afficher.")
     
     with col2:
         st.subheader("Impact par Site")
         impact_by_site = fma_joined.groupby('ID_SITE')['IMPACT'].sum().sort_values(ascending=False)
-        fig = px.bar(
-            x=impact_by_site.index,
-            y=impact_by_site.values,
-            title="Impact Carbone du Matériel par Site",
-            labels={'x': 'Site', 'y': 'Impact (tCO₂e)'}
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        if len(impact_by_site) > 0:
+            fig = px.bar(
+                x=impact_by_site.index,
+                y=impact_by_site.values,
+                title="Impact Carbone du Matériel par Site",
+                labels={'x': 'Site', 'y': 'Impact (tCO₂2e)'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aucune donnée à afficher.")
     
     st.subheader("Impact par Fonction Personnelle")
-    impact_by_fonction = fma_joined.groupby('FONCTION_PERSONNEL')['IMPACT'].sum().sort_values(ascending=False)
-    fig = px.bar(
-        y=impact_by_fonction.index,
-        x=impact_by_fonction.values,
-        title="Impact du Matériel par Fonction",
-        labels={'x': 'Impact (tCO₂e)', 'y': 'Fonction'},
-        orientation='h'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    impact_by_fonction = fma_joined.groupby('FONCTION_PERSONNEL')['IMPACT'].sum().sort_values(ascending=True)
+    if len(impact_by_fonction) > 0:
+        fig = px.bar(
+            y=impact_by_fonction.index,
+            x=impact_by_fonction.values,
+            title="Impact du Matériel par Fonction",
+            labels={'x': 'Impact (tCO₂2e)', 'y': 'Fonction'},
+            orientation='h'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     st.subheader("Matériel Détaillé")
     st.dataframe(fma_joined[['TYPE', 'MODELE', 'IMPACT', 'ID_SITE', 'FONCTION_PERSONNEL']], use_container_width=True)
@@ -476,48 +502,60 @@ with tab4:
     
     with col1:
         st.subheader("Impact par Type de Transport")
-        impact_by_transport = fm_joined.groupby('TRANSPORT')['EMISSION'].sum().sort_values(ascending=False)
-        fig = px.bar(
-            y=impact_by_transport.index,
-            x=impact_by_transport.values,
-            title="Impact Carbone par Type de Transport",
-            labels={'x': 'Emission (tCO₂e)', 'y': 'Transport'},
-            orientation='h'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        impact_by_transport = fm_joined.groupby('TRANSPORT')['EMISSION'].sum().sort_values(ascending=True)
+        if len(impact_by_transport) > 0:
+            fig = px.bar(
+                y=impact_by_transport.index,
+                x=impact_by_transport.values,
+                title="Impact Carbone par Type de Transport",
+                labels={'x': 'Emission (tCO₂2e)', 'y': 'Transport'},
+                orientation='h'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aucune donnée à afficher.")
     
     with col2:
         st.subheader("Impact par Type de Mission")
-        impact_by_mission = fm_joined.groupby('TYPE_MISSION')['EMISSION'].sum().sort_values(ascending=False)
-        fig = px.bar(
-            y=impact_by_mission.index,
-            x=impact_by_mission.values,
-            title="Impact Carbone par Type de Mission",
-            labels={'x': 'Emission (tCO₂e)', 'y': 'Type'},
-            orientation='h'
-        )
-        st.plotly_chart(fig, use_container_width=True)
+        impact_by_mission = fm_joined.groupby('TYPE_MISSION')['EMISSION'].sum().sort_values(ascending=True)
+        if len(impact_by_mission) > 0:
+            fig = px.bar(
+                y=impact_by_mission.index,
+                x=impact_by_mission.values,
+                title="Impact Carbone par Type de Mission",
+                labels={'x': 'Emission (tCO₂2e)', 'y': 'Type'},
+                orientation='h'
+            )
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Aucune donnée à afficher.")
     
     st.subheader("Missions par Site")
     missions_by_site = fm_joined.groupby('ID_SITE')['EMISSION'].sum().sort_values(ascending=False)
-    fig = px.bar(
-        x=missions_by_site.index,
-        y=missions_by_site.values,
-        title="Impact des Missions par Site",
-        labels={'x': 'Site', 'y': 'Emission (tCO₂e)'}
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    if len(missions_by_site) > 0:
+        fig = px.bar(
+            x=missions_by_site.index,
+            y=missions_by_site.values,
+            title="Impact des Missions par Site",
+            labels={'x': 'Site', 'y': 'Emission (tCO₂2e)'}
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     st.subheader("Top 10 Destinations les Plus Impactantes")
-    top_destinations = fm_joined.groupby('VILLE_DESTINATION')['EMISSION'].sum().sort_values(ascending=False).head(10)
-    fig = px.bar(
-        y=top_destinations.index,
-        x=top_destinations.values,
-        title="Top 10 Destinations",
-        labels={'x': 'Emission (tCO₂e)', 'y': 'Destination'},
-        orientation='h'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    top_destinations = fm_joined.groupby('VILLE_DESTINATION')['EMISSION'].sum().sort_values(ascending=False).head(10).sort_values(ascending=True)
+    if len(top_destinations) > 0:
+        fig = px.bar(
+            y=top_destinations.index,
+            x=top_destinations.values,
+            title="Top 10 Destinations",
+            labels={'x': 'Emission (tCO₂2e)', 'y': 'Destination'},
+            orientation='h'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
 
 # ============================================================================
 # ONGLET 5 - QUESTIONS ET RÉPONSES
@@ -604,28 +642,34 @@ with tab5:
     st.subheader("Q10: Secteur avec plus d'impact (missions + matériel)?")
     missions_by_fonction = fm_missions.merge(dp, on='ID_PERSONNEL', how='left').groupby('FONCTION_PERSONNEL')['EMISSION'].sum()
     materiel_by_fonction = fma_types.merge(dp, on='ID_PERSONNEL', how='left').groupby('FONCTION_PERSONNEL')['IMPACT'].sum()
-    q10 = (missions_by_fonction.add(materiel_by_fonction, fill_value=0)).sort_values(ascending=False)
-    fig = px.bar(
-        y=q10.index,
-        x=q10.values,
-        title="Impact Total par Fonction",
-        labels={'x': 'Impact (tCO2e)', 'y': 'Fonction'},
-        orientation='h'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    q10 = (missions_by_fonction.add(materiel_by_fonction, fill_value=0)).sort_values(ascending=True)
+    if len(q10) > 0:
+        fig = px.bar(
+            y=q10.index,
+            x=q10.values,
+            title="Impact Total par Fonction",
+            labels={'x': 'Impact (tCO2e)', 'y': 'Fonction'},
+            orientation='h'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     # Q11
     st.subheader("Q11: Site avec le plus d'impact (missions + matériel)?")
     missions_by_site = fm_missions.groupby('ID_SITE')['EMISSION'].sum()
     materiel_by_site = fma_types.groupby('ID_SITE')['IMPACT'].sum()
     q11 = (missions_by_site.add(materiel_by_site, fill_value=0)).sort_values(ascending=False)
-    fig = px.bar(
-        x=q11.index,
-        y=q11.values,
-        title="Impact Total par Site",
-        labels={'x': 'Site', 'y': 'Impact (tCO2e)'}
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    if len(q11) > 0:
+        fig = px.bar(
+            x=q11.index,
+            y=q11.values,
+            title="Impact Total par Site",
+            labels={'x': 'Site', 'y': 'Impact (tCO2e)'}
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     # Q12
     st.subheader("Q12: Impact missions inter-sites en septembre 2026?")
@@ -654,15 +698,18 @@ with tab5:
         (fm_missions['TYPE_MISSION'] == 'Conference') &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 9, 30))
-    ].merge(dp, on='ID_PERSONNEL', how='left').groupby('FONCTION_PERSONNEL')['EMISSION'].sum().sort_values(ascending=False)
-    fig = px.bar(
-        y=q14.index,
-        x=q14.values,
-        title="Impact Conférences par Fonction",
-        labels={'x': 'Emission (tCO2e)', 'y': 'Fonction'},
-        orientation='h'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    ].merge(dp, on='ID_PERSONNEL', how='left').groupby('FONCTION_PERSONNEL')['EMISSION'].sum().sort_values(ascending=True)
+    if len(q14) > 0:
+        fig = px.bar(
+            y=q14.index,
+            x=q14.values,
+            title="Impact Conférences par Fonction",
+            labels={'x': 'Emission (tCO2e)', 'y': 'Fonction'},
+            orientation='h'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     # Q15
     st.subheader("Q15: Âge moyen Data Engineers en formations (juillet-septembre 2026)?")
@@ -681,15 +728,18 @@ with tab5:
     q16 = fm_missions[
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 10, 31))
-    ].groupby('VILLE_DESTINATION')['EMISSION'].sum().sort_values(ascending=False).head(10)
-    fig = px.bar(
-        y=q16.index,
-        x=q16.values,
-        title="Top 10 Destinations Impactantes",
-        labels={'x': 'Emission (tCO2e)', 'y': 'Destination'},
-        orientation='h'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    ].groupby('VILLE_DESTINATION')['EMISSION'].sum().sort_values(ascending=False).head(10).sort_values(ascending=True)
+    if len(q16) > 0:
+        fig = px.bar(
+            y=q16.index,
+            x=q16.values,
+            title="Top 10 Destinations Impactantes",
+            labels={'x': 'Emission (tCO2e)', 'y': 'Destination'},
+            orientation='h'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     # Q17
     st.subheader("Q17: Top 3 missions cadres (sites européens) en mai 2026?")
@@ -697,15 +747,18 @@ with tab5:
         (fm_missions['ID_SITE'].isin(['PARIS', 'LONDON', 'BERLIN'])) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 5, 31))
-    ].merge(dp, on='ID_PERSONNEL', how='left').query('FONCTION_PERSONNEL == "Business Executive"').groupby('TYPE_MISSION')['EMISSION'].sum().sort_values(ascending=False).head(3)
-    fig = px.bar(
-        y=q17.index,
-        x=q17.values,
-        title="Top 3 Missions Cadres (mai)",
-        labels={'x': 'Emission (tCO2e)', 'y': 'Type'},
-        orientation='h'
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    ].merge(dp, on='ID_PERSONNEL', how='left').query('FONCTION_PERSONNEL == "Business Executive"').groupby('TYPE_MISSION')['EMISSION'].sum().sort_values(ascending=False).head(3).sort_values(ascending=True)
+    if len(q17) > 0:
+        fig = px.bar(
+            y=q17.index,
+            x=q17.values,
+            title="Top 3 Missions Cadres (mai)",
+            labels={'x': 'Emission (tCO2e)', 'y': 'Type'},
+            orientation='h'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Aucune donnée à afficher.")
     
     # Q18
     st.subheader("Q18: Top 5 missions les plus impactantes à Paris?")
