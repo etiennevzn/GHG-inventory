@@ -340,7 +340,7 @@ with tab1:
             return None
         return None
 
-    # Utiliser toutes les missions (pas seulement celles entre sites)
+    # Utiliser toutes les missions
     map_missions = fm_missions.copy()
 
     if map_missions.empty:
@@ -557,6 +557,21 @@ with tab4:
     else:
         st.info("Aucune donnée à afficher.")
 
+    # Missions détaillées (tableau)
+    st.subheader("Missions détaillées")
+    missions_columns = [
+        'ID_MISSION', 'ID_PERSONNEL', 'ID_SITE', 'ID_DATE_MISSION',
+        'TYPE_MISSION', 'VILLE_DEPART', 'VILLE_DESTINATION', 'TRANSPORT', 'EMISSION'
+    ]
+    available_cols = [c for c in missions_columns if c in fm_joined.columns]
+    if len(fm_joined) > 0 and len(available_cols) > 0:
+        st.dataframe(
+            fm_joined[available_cols].sort_values(by='ID_DATE_MISSION', ascending=False).reset_index(drop=True),
+            use_container_width=True
+        )
+    else:
+        st.info("Aucune donnée détaillée de mission à afficher.")
+
 # ============================================================================
 # ONGLET 5 - QUESTIONS ET RÉPONSES
 # ============================================================================
@@ -762,9 +777,29 @@ with tab5:
     
     # Q18
     st.subheader("Q18: Top 5 missions les plus impactantes à Paris?")
-    q18 = fm_missions[fm_missions['ID_SITE'] == 'PARIS'].nlargest(5, 'EMISSION')[['TYPE_MISSION', 'VILLE_DEPART', 'VILLE_DESTINATION', 'TRANSPORT', 'EMISSION']]
-    q18.columns = ['Type', 'Départ', 'Destination', 'Transport', 'Emission (tCO2e)']
-    st.dataframe(q18, use_container_width=True)
+    q18_df = fm_missions[fm_missions['ID_SITE'] == 'PARIS'].nlargest(5, 'EMISSION').copy()
+    if not q18_df.empty:
+        # Utiliser ID_MISSION pour garantir un label unique par mission
+        q18_df['label'] = q18_df.apply(
+            lambda r: f"{r.get('ID_MISSION','')} — {r.get('TYPE_MISSION','')} — {r.get('VILLE_DEPART','')}→{r.get('VILLE_DESTINATION','')}", axis=1
+        )
+
+        fig = px.bar(
+            q18_df.sort_values('EMISSION', ascending=True),
+            x='EMISSION',
+            y='label',
+            orientation='h',
+            hover_data=['ID_MISSION', 'TYPE_MISSION', 'VILLE_DEPART', 'VILLE_DESTINATION', 'TRANSPORT', 'EMISSION'],
+            title="Top 5 Missions à Paris - Emission (tCO2e)"
+        )
+        fig.update_layout(xaxis_title='Emission (tCO2e)', yaxis_title='', height=420)
+        st.plotly_chart(fig, use_container_width=True)
+
+        # Afficher aussi le tableau détaillé dessous (lignes originales)
+        display_cols = [c for c in ['ID_MISSION', 'TYPE_MISSION', 'VILLE_DEPART', 'VILLE_DESTINATION', 'TRANSPORT', 'EMISSION'] if c in q18_df.columns]
+        st.dataframe(q18_df[display_cols].reset_index(drop=True), use_container_width=True)
+    else:
+        st.info("Aucune mission à Paris.")
     
     # Q19
     st.subheader("Q19: Impact missions mensuels par transport et site?")
