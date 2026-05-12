@@ -1,23 +1,14 @@
+[ ] Séparer les fichiers (mettre certaines fonctions dans un fichier utils) laisser juste création du modele + réponses aux questions dans l'ETL
 [X] ETL : sauvegarder la distance entre les villes
 [ ] ETL : revoir fonction imputation du type de matériel
 [ ] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
-[ ] Revoir la fonction _missions_with_emissions du dashboard
-[ ] Continuer page missions et déplacements
-[ ] A quel point on dit IA gen ? (template streamlit, conversion fonctions spark vers pandas, css...)
-[ ] Enlever les c for c in next... dan star_model
-[ ] Verif fonction calcul des distances pour le dashboard (uniformiser la seed)
-[ ] Corriger les left join en inner calcul dashboard
-[ ] Ajouter un cache pour les calculs ?
-[ ] Revoir figure dashboard matériel (vraiment utile ? en mettre une autre ?)
 [ ] graphique avion prédominant : soit changer les axes, soit faire une figure avec l'avion et une figure avec tout sauf l'avion
 [ ] Vérifier cohérence questions ETL / dashboard
-[ ] Tableau de bord
 [ ] Slides
 [ ] Repasser sur toutes les questions et vérifier que la logique est bonne 
 [ ] Organiser fichiers dans les dossiers
 [X] Modifier les fonctions de traitement pour mettre la boucle sur les dates à l'extérieur
 [ ] Supprimer les tables de dimension inutiles + update UML
-[ ] Séparer les fichiers (mettre certaines fonctions dans un fichier utils) laisser juste les réponses aux questions dans l'ETL
 [X] Est-ce que la fonctions d'extraction du personnel on sort la boucle de la fonction ?
 [X] Priorité : voir comment nettoyer les NaN dans les données de matériel 
 [X] Architecture Data Warehouse 

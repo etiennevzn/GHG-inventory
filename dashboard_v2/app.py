@@ -580,32 +580,32 @@ with tab5:
     st.header("Réponses aux questions - Fiche projet")
     
     # Q1
-    st.subheader("Q1: Combien de cadres travaillent sur le site de Paris?")
+    st.subheader("Q1: Combien de cadres travaillent sur le site de Paris ?")
     q1 = dp[(dp['ID_SITE'] == 'PARIS') & (dp['FONCTION_PERSONNEL'] == 'Business Executive')].shape[0]
-    st.metric("Nombre de cadres à Paris", q1)
+    st.metric("", q1)
     
     # Q2
-    st.subheader("Q2: Combien d'ingénieurs Data travaillent sur les sites aux États-Unis?")
+    st.subheader("Q2: Combien d'ingénieurs Data travaillent sur les sites aux États-Unis ?")
     q2 = dp[(dp['ID_SITE'].isin(['LOSANGELES', 'NEWYORK'])) & (dp['FONCTION_PERSONNEL'] == 'Data Engineer')].shape[0]
-    st.metric("Ingénieurs Data aux USA", q2)
+    st.metric("", q2)
     
     # Q3
-    st.subheader("Q3: Combien d'ingénieurs informaticiens travaillent dans l'organisation?")
+    st.subheader("Q3: Combien d'ingénieurs informaticiens travaillent dans l'organisation ?")
     q3 = dp[dp['FONCTION_PERSONNEL'] == 'Computer Engineer'].shape[0]
-    st.metric("Ingénieurs informaticiens totaux", q3)
+    st.metric("", q3)
     
     # Q4
-    st.subheader("Q4: Combien de PC fixes ont été achetés entre juin et septembre 2026?")
+    st.subheader("Q4: Combien de PC fixes ont été achetés entre juin et septembre 2026 ?")
     fma_types = fma.merge(dma, on='ID_MATERIEL', how='left')
     q4 = fma_types[
         (fma_types['TYPE'].isin(['PC fixe sans ecran', 'PC fixe tout-en-un'])) &
         (pd.to_datetime(fma_types['ID_DATE_ACHAT']).dt.date >= date(2026, 6, 1)) &
         (pd.to_datetime(fma_types['ID_DATE_ACHAT']).dt.date <= date(2026, 9, 30))
     ].shape[0]
-    st.metric("PC fixes (juin-septembre 2026)", q4)
+    st.metric("", q4)
     
     # Q5
-    st.subheader("Q5: Impact carbone des PC fixes sans écran (mai-octobre 2026)?")
+    st.subheader("Q5: Quel a été l’impact carbone des PC fixes sans ecran entre mai et octobre 2026 ?")
     q5 = fma_types[
         (fma_types['TYPE'] == 'PC fixe sans ecran') &
         (pd.to_datetime(fma_types['ID_DATE_ACHAT']).dt.date >= date(2026, 5, 1)) &
@@ -614,7 +614,7 @@ with tab5:
     st.metric("Impact (tCO2e)", f"{q5:.3f}")
     
     # Q6
-    st.subheader("Q6: Impact PC portables achetés par Data Engineers à Londres et New-York (mai-octobre 2026)?")
+    st.subheader("Q6: Quel a été l'impact carbone des PC portables achetés par les ingénieurs Data entre mai et octobre 2026 sur les sites de Londres et New-York ?")
     q6_personnel = dp[(dp['ID_SITE'].isin(['LONDON', 'NEWYORK'])) & (dp['FONCTION_PERSONNEL'] == 'Data Engineer')]
     q6 = fma_types[
         (fma_types['ID_PERSONNEL'].isin(q6_personnel['ID_PERSONNEL'])) &
@@ -625,7 +625,7 @@ with tab5:
     st.metric("Impact (tCO2e)", f"{q6:.3f}")
     
     # Q7
-    st.subheader("Q7: Impact écrans achetés par cadres (juillet-septembre 2026)?")
+    st.subheader("Q7: Quel a été l’impact carbone des Ecrans achetés par les cadres entre juillet et septembre 2026 sur tous les sites de l’organisation ?")
     q7_personnel = dp[dp['FONCTION_PERSONNEL'] == 'Business Executive']
     q7 = fma_types[
         (fma_types['ID_PERSONNEL'].isin(q7_personnel['ID_PERSONNEL'])) &
@@ -636,14 +636,14 @@ with tab5:
     st.metric("Impact (tCO2e)", f"{q7:.3f}")
     
     # Q8
-    st.subheader("Q8: Impact missions sur sites européens (mai-octobre 2026)?")
+    st.subheader("Q8: Quel a été l’impact carbone des missions sur les sites Européens entre mai et octobre 2026 ?")
     fm_missions = fm_joined.copy()
     q8 = fm_missions[
         (fm_missions['ID_SITE'].isin(['PARIS', 'LONDON', 'BERLIN'])) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 10, 31))
     ]['EMISSION'].sum()
-    st.metric("Emission (tCO2e)", f"{q8:.3f}")
+    st.metric("Impact (tCO2e)", f"{q8:.3f}")
     
     # Q9
     st.subheader("Q9: Top 5 jours les plus impactants pour missions en avion (sites européens)?")
@@ -654,7 +654,7 @@ with tab5:
     st.dataframe(q9.reset_index(), use_container_width=True)
     
     # Q10
-    st.subheader("Q10: Secteur avec plus d'impact (missions + matériel)?")
+    st.subheader("Q10: Quel a été le secteur d’activité qui a eu le plus d’impact concernant les missions et le matériel informatique sur l’ensemble des sites de l’organisation ?")
     missions_by_fonction = fm_missions.merge(dp, on='ID_PERSONNEL', how='left').groupby('FONCTION_PERSONNEL')['EMISSION'].sum()
     materiel_by_fonction = fma_types.merge(dp, on='ID_PERSONNEL', how='left').groupby('FONCTION_PERSONNEL')['IMPACT'].sum()
     q10 = (missions_by_fonction.add(materiel_by_fonction, fill_value=0)).sort_values(ascending=True)
@@ -671,7 +671,7 @@ with tab5:
         st.info("Aucune donnée à afficher.")
     
     # Q11
-    st.subheader("Q11: Site avec le plus d'impact (missions + matériel)?")
+    st.subheader("Q11: Quel site a eu le plus d’impact concernant les missions et le matériel informatique sur l’ensemble des sites de l’organisation ?")
     missions_by_site = fm_missions.groupby('ID_SITE')['EMISSION'].sum()
     materiel_by_site = fma_types.groupby('ID_SITE')['IMPACT'].sum()
     q11 = (missions_by_site.add(materiel_by_site, fill_value=0)).sort_values(ascending=False)
@@ -687,7 +687,7 @@ with tab5:
         st.info("Aucune donnée à afficher.")
     
     # Q12
-    st.subheader("Q12: Impact missions inter-sites en septembre 2026?")
+    st.subheader("Q12: Quel a été l’impact carbone des missions reliant chaque site durant le mois de septembre 2026 ?")
     sites_missions = ["Los Angeles", "New-York", "Paris", "London", "Shanghai", "Berlin"]
     q12 = fm_missions[
         (fm_missions['VILLE_DEPART'].isin(sites_missions)) &
@@ -695,20 +695,20 @@ with tab5:
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 9, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 9, 30))
     ]['EMISSION'].sum()
-    st.metric("Emission (tCO2e)", f"{q12:.3f}")
+    st.metric("Impact (tCO2e)", f"{q12:.3f}")
     
     # Q13
-    st.subheader("Q13: Impact conférences pour Los Angeles (juillet 2026)?")
+    st.subheader("Q13: Impact séminaires pour Los Angeles (juillet 2026) ?")
     q13 = fm_missions[
         (fm_missions['TYPE_MISSION'] == 'Conference') &
         (fm_missions['ID_SITE'] == 'LOSANGELES') &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 7, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 7, 31))
     ]['EMISSION'].sum()
-    st.metric("Emission (tCO2e)", f"{q13:.3f}")
+    st.metric("Impact (tCO2e)", f"{q13:.3f}")
     
     # Q14
-    st.subheader("Q14: Fonction avec plus d'impact pour conférences (mai-septembre 2026)?")
+    st.subheader("Q14: Fonction avec plus d'impact pour conférences (mai-septembre 2026) ?")
     q14 = fm_missions[
         (fm_missions['TYPE_MISSION'] == 'Conference') &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
@@ -727,19 +727,19 @@ with tab5:
         st.info("Aucune donnée à afficher.")
     
     # Q15
-    st.subheader("Q15: Âge moyen Data Engineers en formations (juillet-septembre 2026)?")
+    st.subheader("Q15: Âge moyen des ingénieurs Data partis en formation (juillet-septembre 2026) ?")
     q15 = fm_missions[
         (fm_missions['TYPE_MISSION'] == 'Vocational Training') &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 7, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 9, 30))
     ].merge(dp, on='ID_PERSONNEL', how='left').query('FONCTION_PERSONNEL == "Data Engineer"')['AGE'].mean()
     if not np.isnan(q15):
-        st.metric("Âge moyen", f"{q15:.1f}")
+        st.metric("", f"{q15:.1f} ans")
     else:
         st.info("Aucune donnée disponible")
     
     # Q16
-    st.subheader("Q16: Destination la plus impactante (mai-octobre 2026)?")
+    st.subheader("Q16: Destination la plus impactante (mai-octobre 2026) ?")
     q16 = fm_missions[
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date <= date(2026, 10, 31))
@@ -757,7 +757,7 @@ with tab5:
         st.info("Aucune donnée à afficher.")
     
     # Q17
-    st.subheader("Q17: Top 3 missions cadres (sites européens) en mai 2026?")
+    st.subheader("Q17: Quelles ont été les trois catégories de missions les plus impactantes pour les cadres dans les sites Européens en mai 2026 ?")
     q17 = fm_missions[
         (fm_missions['ID_SITE'].isin(['PARIS', 'LONDON', 'BERLIN'])) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
@@ -776,7 +776,7 @@ with tab5:
         st.info("Aucune donnée à afficher.")
     
     # Q18
-    st.subheader("Q18: Top 5 missions les plus impactantes à Paris?")
+    st.subheader("Q18: Quelles ont été les 5 missions les plus impactantes sur le site de Paris ?")
     q18_df = fm_missions[fm_missions['ID_SITE'] == 'PARIS'].nlargest(5, 'EMISSION').copy()
     if not q18_df.empty:
         # Utiliser ID_MISSION pour garantir un label unique par mission
@@ -802,7 +802,7 @@ with tab5:
         st.info("Aucune mission à Paris.")
     
     # Q19
-    st.subheader("Q19: Impact missions mensuels par transport et site?")
+    st.subheader("Q19: Impact carbone mensuel des missions par transport et site")
     q19 = fm_missions.copy()
     q19['MOIS'] = pd.to_datetime(q19['ID_DATE_MISSION']).dt.to_period('M').astype(str)
     q19_pivot = q19.groupby(['ID_SITE', 'MOIS', 'TRANSPORT'])['EMISSION'].sum().reset_index()
@@ -820,7 +820,7 @@ with tab5:
     st.plotly_chart(fig, use_container_width=True)
     
     # Q20
-    st.subheader("Q20: Impact global mensuel (missions + matériel)?")
+    st.subheader("Q20: Impact carbone global mensuel")
     q20_missions = fm_missions.copy()
     q20_missions['MOIS'] = pd.to_datetime(q20_missions['ID_DATE_MISSION']).dt.to_period('M').astype(str)
     q20_m = q20_missions.groupby('MOIS')['EMISSION'].sum().reset_index()
