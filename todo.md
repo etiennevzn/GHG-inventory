@@ -1,5 +1,6 @@
 [X] ETL : sauvegarder la distance entre les villes
 [ ] ETL : revoir fonction imputation du type de matériel
+[ ] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
 [ ] Revoir la fonction _missions_with_emissions du dashboard
 [ ] Continuer page missions et déplacements
 [ ] A quel point on dit IA gen ? (template streamlit, conversion fonctions spark vers pandas, css...)

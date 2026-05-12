@@ -7,8 +7,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 # Configuration Streamlit
-st.set_page_config(page_title="GHG Inventory Dashboard", layout="wide", initial_sidebar_state="expanded")
-st.title("Dashboard - Inventaire Carbone GHG")
+st.set_page_config(page_title="Dashboard Inventaire GES", layout="wide", initial_sidebar_state="expanded")
+st.title("Dashboard - Bilan Gaz à Effet de Serre")
 
 # ============================================================================
 # CHARGEMENT DES DONNÉES PARQUET
@@ -66,7 +66,7 @@ max_value = max_date if isinstance(max_date, date) else max_date.date()
 
 date_range = st.sidebar.date_input(
     "Plage de dates",
-    value=(date(2026, 5, 1), date(2026, 10, 31)),
+    value=(date(2026, 4, 28), date(2026, 11, 15)),
     min_value=min_value,
     max_value=max_value
 )
@@ -87,6 +87,14 @@ selected_fonctions = st.sidebar.multiselect(
     default=fonctions
 )
 
+# Filtres par type de transport
+transports = sorted(dm['TRANSPORT'].dropna().unique())
+selected_transports = st.sidebar.multiselect(
+    "Type de transport",
+    transports,
+    default=transports
+)
+
 # ============================================================================
 # PRÉPARATION DES DONNÉES FILTRÉES
 # ============================================================================
@@ -103,6 +111,12 @@ dp_filtered = dp[dp['ID_SITE'].isin(selected_sites) & dp['FONCTION_PERSONNEL'].i
 fm_joined = fm.merge(dm, on='ID_MISSION', how='left')
 fm_joined = fm_joined.merge(dd_filtered[['ID_DATE']], left_on='ID_DATE_MISSION', right_on='ID_DATE', how='inner')
 fm_joined = fm_joined[fm_joined['ID_SITE'].isin(selected_sites)]
+# Appliquer filtre transports si défini
+if selected_transports:
+    fm_joined = fm_joined[fm_joined['TRANSPORT'].isin(selected_transports)]
+
+# Copier une vue des missions filtrées pour réutilisation
+fm_missions = fm_joined.copy()
 
 fma_joined = fma.merge(dma, on='ID_MATERIEL', how='left')
 fma_joined = fma_joined.merge(dd_filtered[['ID_DATE']], left_on='ID_DATE_ACHAT', right_on='ID_DATE', how='inner')
@@ -320,7 +334,7 @@ with tab4:
 # ============================================================================
 
 with tab5:
-    st.header("Reconstitution des Questions")
+    st.header("Réponses aux questions - Fiche projet")
     
     # Q1
     st.subheader("Q1: Combien de cadres travaillent sur le site de Paris?")
@@ -380,7 +394,7 @@ with tab5:
     
     # Q8
     st.subheader("Q8: Impact missions sur sites européens (mai-octobre 2026)?")
-    fm_missions = fm.merge(dm, on='ID_MISSION', how='left')
+    fm_missions = fm_joined.copy()
     q8 = fm_missions[
         (fm_missions['ID_SITE'].isin(['PARIS', 'LONDON', 'BERLIN'])) &
         (pd.to_datetime(fm_missions['ID_DATE_MISSION']).dt.date >= date(2026, 5, 1)) &
