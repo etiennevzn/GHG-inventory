@@ -5,10 +5,24 @@ from pathlib import Path
 from datetime import date
 import plotly.express as px
 import plotly.graph_objects as go
+import time
 
 # Configuration Streamlit
 st.set_page_config(page_title="Dashboard Inventaire GES", layout="wide", initial_sidebar_state="expanded")
 st.title("Dashboard - Bilan Gaz à Effet de Serre")
+
+# Réduire l'espace vide en bas de page et cacher le footer Streamlit
+st.markdown(
+        """
+        <style>
+            /* Réduit le padding bottom du conteneur principal */
+            .block-container { padding-bottom: 1rem !important; }
+            /* Hide Streamlit footer to reclaim space */
+            .stApp footer { visibility: hidden; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+)
 
 # ============================================================================
 # CHARGEMENT DES DONNÉES PARQUET
@@ -186,14 +200,190 @@ with tab1:
     fig = go.Figure()
     fig.add_trace(go.Bar(x=monthly_data['MOIS'], y=monthly_data['EMISSION'], name='Missions'))
     fig.add_trace(go.Bar(x=monthly_data['MOIS'], y=monthly_data['IMPACT'], name='Matériel'))
+    # Ligne total (missions + matériel)
+    fig.add_trace(go.Scatter(
+        x=monthly_data['MOIS'],
+        y=monthly_data['Total'],
+        name='Total',
+        mode='lines+markers',
+        line=dict(color='red', width=3)
+    ))
     fig.update_layout(
         title="Impact Carbone Mensuel (Missions + Matériel)",
         barmode='stack',
         xaxis_title="Mois",
         yaxis_title="Impact (tCO₂e)",
-        height=400
+        height=500,
+        margin=dict(t=50, b=60, l=60, r=20)
     )
     st.plotly_chart(fig, use_container_width=True)
+
+    # Carte mondiale: trajets (toutes les missions lorsque possible) et points pour les 6 sites
+    st.subheader("Cartes des trajets de missions")
+    # Coordonnées approximatives pour les 6 sites
+    site_coords = {
+        "Paris": (48.8566, 2.3522),
+        "London": (51.5074, -0.1278),
+        "Berlin": (52.5200, 13.4050),
+        "Los Angeles": (34.0522, -118.2437),
+        "New-York": (40.7128, -74.0060),
+        "Shanghai": (31.2304, 121.4737)
+    }
+
+    # Table de rattrapage pour quelques grandes villes courantes (ajoutez si nécessaire)
+    extra_coords = {
+        "Paris": site_coords['Paris'],
+        "London": site_coords['London'],
+        "Berlin": site_coords['Berlin'],
+        "Los Angeles": site_coords['Los Angeles'],
+        "New-York": site_coords['New-York'],
+        "New York": site_coords['New-York'],
+        "NewYork": site_coords['New-York'],
+        "Shanghai": site_coords['Shanghai'],
+        "LosAngeles": site_coords['Los Angeles'],
+        "Newyork": site_coords['New-York']
+    }
+
+    # Construire un mapping canonique pour chercher rapidement
+    def canon(s):
+        return ''.join(ch.lower() for ch in str(s) if ch.isalnum())
+
+    # Dictionnaire étendu fourni (ville, pays) -> (lat, lon)
+    extended_coords = {
+        ("Paris", "France"): (48.8566, 2.3522),
+        ("Berlin", "Germany"): (52.5200, 13.4050),
+        ("Berlin", "Allemagne"): (52.5200, 13.4050),
+        ("London", "England"): (51.5074, -0.1278),
+        ("New York", "USA"): (40.7128, -74.0060),
+        ("New-York", "USA"): (40.7128, -74.0060),
+        ("Los Angeles", "USA"): (34.0522, -118.2437),
+        ("Shanghai", "China"): (31.2304, 121.4737),
+        ("Marseille", "France"): (43.2965, 5.3698),
+        ("Compiègne", "France"): (49.4144, 2.8259),
+        ("Stockholm", "Sweden"): (59.3293, 18.0686),
+        ("Stockholm", "Suède"): (59.3293, 18.0686),
+        ("Helsinki", "Finland"): (60.1695, 24.9354),
+        ("Helsinki", "Finlande"): (60.1695, 24.9354),
+        ("Osaka", "Japan"): (34.6937, 135.5023),
+        ("Tokyo", "Japan"): (35.6762, 139.6503),
+        ("Melbourne", "Australia"): (-37.8136, 144.9631),
+        ("Sydney", "Australia"): (-33.8688, 151.2093),
+        ("Sidney", "Australia"): (-33.8688, 151.2093),
+        ("Wellington", "New Zealand"): (-41.2865, 174.7762),
+        ("Montreal", "Canada"): (45.5017, -73.5673),
+        ("Vancouver", "Canada"): (49.2827, -123.1207),
+        ("Washington", "USA"): (38.9072, -77.0369),
+        ("Buenos Aires", "Argentina"): (-34.6037, -58.3816),
+        ("Bogota", "Colombia"): (4.7110, -74.0721),
+        ("Rio de Janeiro", "Brazil"): (-22.9068, -43.1729),
+        ("Rabat", "Morocco"): (34.0209, -6.8416),
+        ("Rabat", "Maroc"): (34.0209, -6.8416),
+        ("Dubaï", "Emirats"): (25.2048, 55.2708),
+        ("Mexico", "Mexico"): (19.4326, -99.1332),
+        ("Tunis", "Tunisia"): (36.8065, 10.1686),
+        ("Tunis", "Tunisie"): (36.8065, 10.1686),
+        ("Sao Paulo", "Brazil"): (-23.5505, -46.6333),
+        ("Alger", "Algeria"): (36.7538, 3.0588),
+        ("Auckland", "New Zealand"): (-37.0882, 174.8860),
+        ("Bordeaux", "France"): (44.8378, -0.5792),
+        ("Pekin", "China"): (39.9042, 116.4074),
+        ("Beijing", "China"): (39.9042, 116.4074),
+        ("Lille", "France"): (50.6292, 3.0573),
+        ("Oslo", "Norvège"): (59.9139, 10.7522),
+        ("Oslo", "Norway"): (59.9139, 10.7522),
+        ("Lima", "Peru"): (-12.0464, -77.0428)
+    }
+
+    # Build canonical mapping from city names (and variants) to coords
+    canonical_coords = {}
+    for k, v in {**site_coords, **extra_coords}.items():
+        canonical_coords[canon(k)] = v
+    for (city, country), coord in extended_coords.items():
+        canonical_coords[canon(city)] = coord
+        canonical_coords[canon(f"{city}{country}")] = coord
+
+    # Optionnel: essayer de géocoder dynamiquement les villes inconnues via geopy
+    try:
+        from geopy.geocoders import Nominatim
+        geolocator = Nominatim(user_agent="ghg_dashboard")
+        geopy_available = True
+    except Exception:
+        geopy_available = False
+
+    geocode_cache = {}
+
+    def geocode_city(name):
+        key = canon(name)
+        if key in geocode_cache:
+            return geocode_cache[key]
+        if not geopy_available:
+            return None
+        try:
+            loc = geolocator.geocode(name, timeout=10)
+            time.sleep(1)
+            if loc:
+                coord = (loc.latitude, loc.longitude)
+                geocode_cache[key] = coord
+                return coord
+        except Exception:
+            return None
+        return None
+
+    # Utiliser toutes les missions (pas seulement celles entre sites)
+    map_missions = fm_missions.copy()
+
+    if map_missions.empty:
+        st.info("Aucune mission à afficher sur la carte.")
+    else:
+        routes = map_missions.groupby(['VILLE_DEPART', 'VILLE_DESTINATION'])['EMISSION'].sum().reset_index()
+        max_em = routes['EMISSION'].max()
+
+        map_fig = go.Figure()
+
+        # Ajouter une trace par trajet (ligne entre points) si on a les coordonnées
+        for _, row in routes.iterrows():
+            start_key = canon(row['VILLE_DEPART'])
+            end_key = canon(row['VILLE_DESTINATION'])
+            start = canonical_coords.get(start_key)
+            end = canonical_coords.get(end_key)
+            # Si on ne connaît pas les coordonnées, on ignore ce trajet (ou ajouter des geocodes si disponible)
+            if not start or not end:
+                continue
+            width = 1 + (row['EMISSION'] / max_em) * 6 if max_em > 0 else 1
+            map_fig.add_trace(go.Scattergeo(
+                lon=[start[1], end[1]],
+                lat=[start[0], end[0]],
+                mode='lines',
+                line=dict(width=width, color='royalblue'),
+                opacity=0.7,
+                hoverinfo='text',
+                text=f"{row['VILLE_DEPART']} → {row['VILLE_DESTINATION']}: {row['EMISSION']:.2f} tCO2e",
+                showlegend=False
+            ))
+
+        # Ajouter les points des 6 sites (visibles même si pas de trajet)
+        site_names = list(site_coords.keys())
+        lats = [site_coords[s][0] for s in site_names]
+        lons = [site_coords[s][1] for s in site_names]
+        map_fig.add_trace(go.Scattergeo(
+            lon=lons,
+            lat=lats,
+            mode='markers+text',
+            text=site_names,
+            textposition='top center',
+            marker=dict(size=10, color='crimson'),
+            showlegend=False
+        ))
+
+        map_fig.update_layout(
+            title='Épaisseur de ligne proportionelle à la quantité d\'émissions',
+            geo=dict(showland=True, landcolor='rgb(230, 230, 230)', showcountries=True),
+            height=500,
+            margin=dict(t=40, b=20, l=20, r=20),
+            showlegend=False
+        )
+
+        st.plotly_chart(map_fig, use_container_width=True)
 
 # ============================================================================
 # ONGLET 2 - PERSONNEL & SITES
