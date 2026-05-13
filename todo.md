@@ -1,4 +1,4 @@
-[ ] Séparer les fichiers (mettre certaines fonctions dans un fichier utils) laisser juste création du modele + réponses aux questions dans l'ETL
+[x] Séparer les fichiers (mettre certaines fonctions dans un fichier utils) laisser juste création du modele + réponses aux questions dans l'ETL
 [X] ETL : sauvegarder la distance entre les villes
 [ ] ETL : revoir fonction imputation du type de matériel (la partie df['TYPE'] = df['TYPE'].fillna('Matériel Informatique'))
 [ ] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
