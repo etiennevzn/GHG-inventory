@@ -20,11 +20,13 @@
 [X] Pour les trajets dans la même ville, trouver une solution pour la distance
 
 Slides : 
+Dire tout ce qu'on fait dans l'ETL
+-Uniformisation langue
 Difficultés : 
 -Limites API
 -Estimation distance voyage dans la même ville
 -Temps de chargement dashboard (pistes de solution : cache)
--Imputation données matériel
+-Imputation données matériel : imputation du type à partir du modèle si présent, sinon type majoritaire dans le fichier + modèle par défaut
 
 Rendu : 
 -Feuille de questions remplies

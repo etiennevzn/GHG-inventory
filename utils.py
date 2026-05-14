@@ -184,8 +184,9 @@ def clean_materiel(df):
     # Remplir les MODELE manquants par "modèle par défaut"
     df['MODELE'] = df['MODELE'].fillna('modèle par défaut')
     
-    # Remplir les TYPE restants manquants par une valeur par défaut 
-    df['TYPE'] = df['TYPE'].fillna('Matériel Informatique')
+    # Remplir les TYPE restants manquants par la valeur majoritaire du fichier
+    most_frequent_type = df['TYPE'].mode()[0] if not df['TYPE'].mode().empty else 'Matériel Informatique'
+    df['TYPE'] = df['TYPE'].fillna(most_frequent_type)
     
     return df
 
