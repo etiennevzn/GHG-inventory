@@ -1,6 +1,6 @@
 [X] Supprimer les tables de dimension inutiles + update UML
-[ ] Repasser sur toutes les questions et vérifier que la logique est bonne et mettre réponse finale sur la fiche 
-[ ] Vérifier cohérence questions ETL / dashboard
+[X] Repasser sur toutes les questions et vérifier que la logique est bonne et mettre réponse finale sur la fiche 
+[X] Vérifier cohérence questions ETL / dashboard
 [X] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
 
 [ ] graphique avion prédominant : soit changer les axes, soit faire une figure avec l'avion et une figure avec tout sauf l'avion
@@ -9,7 +9,7 @@
 
 [x] Séparer les fichiers (mettre certaines fonctions dans un fichier utils) laisser juste création du modele + réponses aux questions dans l'ETL
 [X] ETL : sauvegarder la distance entre les villes
-[ ] ETL : revoir fonction imputation du type de matériel (la partie df['TYPE'] = df['TYPE'].fillna('Matériel Informatique')) : en fait le problème de remplacer par le truc le plus courant c'est que ça change par exemple la réponse à nb de pc fixes achetés, est-ce qu'on laisse ça ?
+[X] ETL : revoir fonction imputation du type de matériel : en fait le problème de remplacer par le truc le plus courant c'est que ça change par exemple la réponse à nb de pc fixes achetés, est-ce qu'on laisse ça => oui
 
 [X] Modifier les fonctions de traitement pour mettre la boucle sur les dates à l'extérieur
 [X] Est-ce que la fonctions d'extraction du personnel on sort la boucle de la fonction ?
