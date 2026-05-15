@@ -24,6 +24,7 @@ class DIM_MISSION << Dimension >> {
   + PAYS_DESTINATION : VARCHAR
   + TRANSPORT : VARCHAR
   + ALLER_RETOUR : BOOLEEN  
+  + EMISSION : FLOAT
 }
 
 class DIM_MATERIEL << Dimension >> {
@@ -31,6 +32,7 @@ class DIM_MATERIEL << Dimension >> {
   --
   + TYPE : VARCHAR
   + MODELE : VARCHAR
+  + IMPACT : FLOAT
 }
 
 ' ===== DIMENSION CENTRALE PARTAGÉE =====
@@ -42,18 +44,10 @@ class DIM_PERSONNEL << Dimension >> {
   + AGE : INT
 }
 
-class DIM_SITE << Dimension >> {
-  + ID_SITE: INT <<PK>>
-}
-
-class DIM_DATE << Dimension >> {
-  + ID_DATE : DATE <<PK>>
-}
-
 ' ===== TABLES DE FAITS =====
 class FAIT_MISSION << Fait >> {
   + ID_PERSONNEL : INT <<FK>>
-  + id_mission : INT <<FK>>
+  + ID_MISSION : INT <<FK>>
   + ID_SITE : INT <<FK>>
   + ID_DATE_MISSION : DATE <<FK>>
 }
@@ -73,19 +67,14 @@ DIM_MISSION  -[hidden]right- DIM_MATERIEL
 FAIT_MISSION -[hidden]right- FAIT_MATERIEL
 
 ' Ligne du bas : dimensions partagées
-DIM_PERSONNEL -[hidden]right- DIM_SITE
 
 ' ===== RELATIONS FAIT_MISSION =====
 DIM_MISSION       "1" --> "0..*" FAIT_MISSION
 DIM_PERSONNEL     "1" --> "0..*" FAIT_MISSION
-DIM_SITE          "1" --> "0..*" FAIT_MISSION
-DIM_DATE    "1" --> "0..*" FAIT_MISSION
 
 ' ===== RELATIONS FAIT_MATERIEL =====
 DIM_MATERIEL      "1" --> "0..*" FAIT_MATERIEL
 DIM_PERSONNEL     "1" --> "0..*" FAIT_MATERIEL
-DIM_SITE          "1" --> "0..*" FAIT_MATERIEL
-DIM_DATE  "1" --> "0..*" FAIT_MATERIEL
 
 
 
