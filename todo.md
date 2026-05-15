@@ -1,7 +1,7 @@
-[ ] Supprimer les tables de dimension inutiles + update UML
+[X] Supprimer les tables de dimension inutiles + update UML
 [ ] Repasser sur toutes les questions et vérifier que la logique est bonne et mettre réponse finale sur la fiche 
 [ ] Vérifier cohérence questions ETL / dashboard
-[ ] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
+[X] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
 
 [ ] graphique avion prédominant : soit changer les axes, soit faire une figure avec l'avion et une figure avec tout sauf l'avion
 [ ] Slides
