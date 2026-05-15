@@ -3,9 +3,9 @@
 [X] Vérifier cohérence questions ETL / dashboard
 [X] Voir si les réponses aux questions changent si on met date de début au 28 avril et date de fin au 15 novembre
 
-[ ] graphique avion prédominant : soit changer les axes, soit faire une figure avec l'avion et une figure avec tout sauf l'avion
-[ ] Slides
-[ ] Organiser fichiers dans les dossiers
+[X] graphique avion prédominant : soit faire une figure avec l'avion et une figure avec tout sauf l'avion
+[ ] Slides : https://docs.google.com/presentation/d/17kTfnRmv_DdEbygoQ7ePQyJc8KapBfdv2KinFjL4YJ8/edit?slide=id.g3e23d1b08d5_0_373#slide=id.g3e23d1b08d5_0_373
+[X] Organiser fichiers dans les dossiers
 
 [x] Séparer les fichiers (mettre certaines fonctions dans un fichier utils) laisser juste création du modele + réponses aux questions dans l'ETL
 [X] ETL : sauvegarder la distance entre les villes
