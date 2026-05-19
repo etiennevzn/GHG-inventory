@@ -75,7 +75,6 @@ Extraire -> Tranformer (langue, date...) -> ajouter aux tables de fait / dimensi
 
 # Tableau de bord
 Streamlit
-Idée : intégrer un LLM (utilise l'API openAI) pour traduire des requêtes en langage naturel en requêtes sur les données dans le tableau de bord. Si on arrive à faire ça on a 20 c'est sur.  
 
 
 
